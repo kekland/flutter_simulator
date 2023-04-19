@@ -8,12 +8,14 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
     required this.onDeviceInfoChanged,
     required this.onRotateCW,
     required this.onRotateCCW,
+    required this.onScreenshot,
   });
 
   final DeviceInfo? initialDeviceInfo;
   final ValueChanged<DeviceInfo?> onDeviceInfoChanged;
   final VoidCallback onRotateCW;
   final VoidCallback onRotateCCW;
+  final VoidCallback onScreenshot;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +52,13 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
               icon: const Icon(Icons.rotate_90_degrees_cw),
               padding: const EdgeInsets.all(12.0),
               onPressed: onRotateCW,
+            ),
+          ),
+          _DeviceFrameToolbarEntryWidget(
+            child: IconButton(
+              icon: const Icon(Icons.screenshot_rounded),
+              padding: const EdgeInsets.all(12.0),
+              onPressed: onScreenshot,
             ),
           ),
         ],

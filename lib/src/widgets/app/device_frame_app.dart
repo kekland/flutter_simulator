@@ -17,6 +17,7 @@ class DeviceFrameApp extends StatefulWidget {
 
 class _DeviceFrameAppState extends State<DeviceFrameApp>
     with WidgetsBindingObserver {
+  final _deviceFrameRepaintBoundaryKey = GlobalKey();
   DeviceInfo? _deviceInfo;
   late MediaQueryData _mediaQueryData;
   var _systemUiOverlayStyle = SystemUiOverlayStyle.light;
@@ -67,33 +68,45 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
         useMaterial3: true,
       ),
       home: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: DeviceFrameWidget(
-                    deviceInfo: _deviceInfo,
-                    systemMediaQueryData: _mediaQueryData,
-                    systemUiOverlayStyle: _systemUiOverlayStyle,
-                    rotation: _rotation,
-                    child: widget.child,
+        body: Builder(
+          builder: (context) => Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: DeviceFrameWidget(
+                      deviceFrameRepaintBoundaryKey:
+                          _deviceFrameRepaintBoundaryKey,
+                      deviceInfo: _deviceInfo,
+                      systemMediaQueryData: _mediaQueryData,
+                      systemUiOverlayStyle: _systemUiOverlayStyle,
+                      rotation: _rotation,
+                      child: widget.child,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              DeviceFrameToolbarWidget(
-                initialDeviceInfo: _deviceInfo,
-                onDeviceInfoChanged: (v) => setState(() => _deviceInfo = v),
-                onRotateCCW: () {
-                  setState(() => _rotation = _rotation.rotateCCW());
-                },
-                onRotateCW: () {
-                  setState(() => _rotation = _rotation.rotateCW());
-                },
-              ),
-            ],
+                const SizedBox(height: 16.0),
+                DeviceFrameToolbarWidget(
+                  initialDeviceInfo: _deviceInfo,
+                  onDeviceInfoChanged: (v) => setState(() => _deviceInfo = v),
+                  onRotateCCW: () {
+                    setState(() => _rotation = _rotation.rotateCCW());
+                  },
+                  onRotateCW: () {
+                    setState(() => _rotation = _rotation.rotateCW());
+                  },
+                  onScreenshot: () {
+                    takeScreenshot(
+                      context,
+                      deviceInfo: _deviceInfo!,
+                      deviceFrameRepaintBoundaryKey:
+                          _deviceFrameRepaintBoundaryKey,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

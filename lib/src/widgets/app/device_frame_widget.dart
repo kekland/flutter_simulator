@@ -5,13 +5,15 @@ import 'package:flutter_simulator/src/imports.dart';
 class DeviceFrameWidget extends StatelessWidget {
   const DeviceFrameWidget({
     super.key,
-    this.deviceInfo,
+    required this.deviceInfo,
+    required this.deviceFrameRepaintBoundaryKey,
     required this.rotation,
     required this.systemUiOverlayStyle,
     required this.systemMediaQueryData,
     required this.child,
   });
 
+  final Key deviceFrameRepaintBoundaryKey;
   final MediaQueryData systemMediaQueryData;
   final SystemUiOverlayStyle systemUiOverlayStyle;
   final DeviceInfo? deviceInfo;
@@ -52,14 +54,17 @@ class DeviceFrameWidget extends StatelessWidget {
 
     return FittedBox(
       fit: BoxFit.fill,
-      child: SizedBox(
-        width: size.width,
-        height: size.height,
-        child: frameInfo.builder(
-          context,
-          child,
-          rotation,
-          systemUiOverlayStyle,
+      child: RepaintBoundary(
+        key: deviceFrameRepaintBoundaryKey,
+        child: SizedBox(
+          width: size.width,
+          height: size.height,
+          child: frameInfo.builder(
+            context,
+            child,
+            rotation,
+            systemUiOverlayStyle,
+          ),
         ),
       ),
     );
