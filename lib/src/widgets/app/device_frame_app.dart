@@ -30,7 +30,7 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
     _mediaQueryData = MediaQueryData.fromWindow(WidgetsBinding.instance.window);
     WidgetsBinding.instance.addObserver(this);
 
-    DeviceFrameWidgetBinding.instance!.defaultBinaryMessenger
+    FlutterSimulatorWidgetBinding.instance!.defaultBinaryMessenger
         .setMockMethodCallHandler(
       SystemChannels.platform,
       (message) {

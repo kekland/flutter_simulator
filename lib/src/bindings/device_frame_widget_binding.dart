@@ -4,18 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/bindings/interceptable_binary_messenger.dart';
 
-class DeviceFrameWidgetBinding extends WidgetsFlutterBinding
+class FlutterSimulatorWidgetBinding extends WidgetsFlutterBinding
     with InterceptableDefaultBinaryMessengerBinding {
   static WidgetsBinding ensureInitialized() {
     if (instance != null) {
       return instance!;
     }
 
-    instance = DeviceFrameWidgetBinding();
+    instance = FlutterSimulatorWidgetBinding();
     return instance!;
   }
 
-  static DeviceFrameWidgetBinding? instance;
+  static FlutterSimulatorWidgetBinding? instance;
 
   /// The widget that contains the device screen must be keyed with this key.
   ///

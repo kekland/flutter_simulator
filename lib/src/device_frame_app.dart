@@ -3,11 +3,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 
 void runFlutterSimulatorApp(Widget app) {
-  DeviceFrameWidgetBinding.ensureInitialized()
+  FlutterSimulatorWidgetBinding.ensureInitialized()
     ..attachRootWidget(
       DeviceFrameApp(
         child: RepaintBoundary(
-          key: DeviceFrameWidgetBinding.instance!.deviceScreenKey,
+          key: FlutterSimulatorWidgetBinding.instance!.deviceScreenKey,
           child: app,
         ),
       ),
