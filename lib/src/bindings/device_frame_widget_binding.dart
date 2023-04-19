@@ -96,8 +96,8 @@ class FlutterSimulatorWidgetBinding extends WidgetsFlutterBinding
           bottom + layerOffset,
         );
         break;
-      case TargetPlatform.fuchsia:
       case TargetPlatform.iOS:
+      case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.macOS:
       case TargetPlatform.windows:

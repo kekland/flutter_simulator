@@ -332,7 +332,7 @@ class _ForegroundFramePainter extends DeviceForegroundPainter {
 
     notchPath.moveTo(
       size.width / 2 - _notchSize.width / 2 - (36 / 6),
-      screenRect.top,
+      screenRect.top - 1,
     );
 
     notchPath.relativeArcToPoint(
@@ -391,7 +391,7 @@ class _ForegroundFramePainter extends DeviceForegroundPainter {
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
-      Paint()..color = statusBarIconColor,
+      Paint()..color = Colors.black,
     );
   }
 }

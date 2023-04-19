@@ -23,6 +23,7 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
   late MediaQueryData _mediaQueryData;
   var _systemUiOverlayStyle = SystemUiOverlayStyle.light;
   var _rotation = DeviceRotation.deg0;
+  var _brightness = Brightness.light;
 
   @override
   void initState() {
@@ -64,7 +65,7 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.white,
-          brightness: Brightness.light,
+          brightness: _brightness,
         ),
         useMaterial3: true,
       ),
@@ -83,6 +84,7 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
                       systemMediaQueryData: _mediaQueryData,
                       systemUiOverlayStyle: _systemUiOverlayStyle,
                       rotation: _rotation,
+                      brightness: _brightness,
                       child: widget.child,
                     ),
                   ),
@@ -108,6 +110,8 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
                           _deviceFrameRepaintBoundaryKey,
                     );
                   },
+                  brightness: _brightness,
+                  onBrightnessChanged: (v) => setState(() => _brightness = v),
                 ),
               ],
             ),

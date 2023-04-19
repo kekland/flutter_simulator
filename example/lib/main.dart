@@ -20,30 +20,22 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       useInheritedMediaQuery: true,
+      scrollBehavior: FlutterSimulatorScrollBehavior(),
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.green,
           brightness: Brightness.light,
         ),
-        useMaterial3: true,
       ),
       darkTheme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.green,
           brightness: Brightness.dark,
         ),
-        useMaterial3: true,
       ),
-      themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(
-        title: 'Flutter Demo Home Page',
-        onChangeBrightness: () {
-          setState(() {
-            _isDark = !_isDark;
-          });
-        },
-      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -52,11 +44,9 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({
     super.key,
     required this.title,
-    required this.onChangeBrightness,
   });
 
   final String title;
-  final VoidCallback onChangeBrightness;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -91,21 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            onPressed: widget.onChangeBrightness,
-            tooltip: 'Change brightness',
-            child: const Icon(Icons.sunny),
-          ),
-          const SizedBox(height: 16.0),
-          FloatingActionButton(
-            onPressed: _incrementCounter,
-            tooltip: 'Increment',
-            child: const Icon(Icons.add),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
       ),
     );
   }

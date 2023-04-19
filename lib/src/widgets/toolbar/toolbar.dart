@@ -9,6 +9,8 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
     required this.onRotateCW,
     required this.onRotateCCW,
     required this.onScreenshot,
+    required this.brightness,
+    required this.onBrightnessChanged,
   });
 
   final DeviceInfo? initialDeviceInfo;
@@ -16,6 +18,8 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
   final VoidCallback onRotateCW;
   final VoidCallback onRotateCCW;
   final VoidCallback onScreenshot;
+  final Brightness brightness;
+  final ValueChanged<Brightness> onBrightnessChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +29,7 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
         children: [
           _DeviceFrameToolbarEntryWidget(
             child: DropdownMenu(
-              leadingIcon: const Icon(Icons.phone_android),
+              leadingIcon: const Icon(Icons.phone_android_rounded),
               onSelected: (v) => onDeviceInfoChanged(v),
               initialSelection: initialDeviceInfo,
               dropdownMenuEntries: [
@@ -42,16 +46,29 @@ class DeviceFrameToolbarWidget extends StatelessWidget {
           ),
           _DeviceFrameToolbarEntryWidget(
             child: IconButton(
-              icon: const Icon(Icons.rotate_90_degrees_ccw),
+              icon: const Icon(Icons.rotate_90_degrees_ccw_rounded),
               padding: const EdgeInsets.all(12.0),
               onPressed: onRotateCCW,
             ),
           ),
           _DeviceFrameToolbarEntryWidget(
             child: IconButton(
-              icon: const Icon(Icons.rotate_90_degrees_cw),
+              icon: const Icon(Icons.rotate_90_degrees_cw_rounded),
               padding: const EdgeInsets.all(12.0),
               onPressed: onRotateCW,
+            ),
+          ),
+          _DeviceFrameToolbarEntryWidget(
+            child: IconButton(
+              icon: Icon(
+                brightness == Brightness.light ? Icons.sunny : Icons.nightlight,
+              ),
+              padding: const EdgeInsets.all(12.0),
+              onPressed: () => onBrightnessChanged(
+                brightness == Brightness.light
+                    ? Brightness.dark
+                    : Brightness.light,
+              ),
             ),
           ),
           _DeviceFrameToolbarEntryWidget(

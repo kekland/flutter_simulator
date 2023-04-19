@@ -8,6 +8,7 @@ class DeviceFrameWidget extends StatelessWidget {
     required this.deviceInfo,
     required this.deviceFrameRepaintBoundaryKey,
     required this.rotation,
+    required this.brightness,
     required this.systemUiOverlayStyle,
     required this.systemMediaQueryData,
     required this.child,
@@ -17,6 +18,7 @@ class DeviceFrameWidget extends StatelessWidget {
   final MediaQueryData systemMediaQueryData;
   final SystemUiOverlayStyle systemUiOverlayStyle;
   final DeviceInfo? deviceInfo;
+  final Brightness brightness;
   final DeviceRotation rotation;
   final Widget child;
 
@@ -31,6 +33,7 @@ class DeviceFrameWidget extends StatelessWidget {
       size: sizeWithRotation(rotation, deviceInfo!.screenSize),
       viewPadding: viewPadding,
       padding: viewPadding,
+      platformBrightness: brightness,
     );
   }
 
