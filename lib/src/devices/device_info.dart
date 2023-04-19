@@ -5,6 +5,7 @@ import 'package:flutter_simulator/src/imports.dart';
 class DeviceInfo {
   const DeviceInfo({
     required this.name,
+    required this.platform,
     required this.screenDiagonalInches,
     required this.scaleFactor,
     required this.screenSize,
@@ -14,6 +15,7 @@ class DeviceInfo {
   });
 
   final String name;
+  final TargetPlatform platform;
   final double screenDiagonalInches;
   final double scaleFactor;
   final Size screenSize;

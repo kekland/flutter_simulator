@@ -6,6 +6,7 @@ import 'package:matrix4_transform/matrix4_transform.dart';
 
 final iPhone14 = DeviceInfo(
   name: 'iPhone 14',
+  platform: TargetPlatform.iOS,
   screenDiagonalInches: 6.1,
   screenSize: _screenSize,
   scaleFactor: _scaleFactor,

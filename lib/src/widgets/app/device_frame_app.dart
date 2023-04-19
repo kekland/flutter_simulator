@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -89,7 +90,10 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
                 const SizedBox(height: 16.0),
                 DeviceFrameToolbarWidget(
                   initialDeviceInfo: _deviceInfo,
-                  onDeviceInfoChanged: (v) => setState(() => _deviceInfo = v),
+                  onDeviceInfoChanged: (v) {
+                    debugDefaultTargetPlatformOverride = v?.platform;
+                    setState(() => _deviceInfo = v);
+                  },
                   onRotateCCW: () {
                     setState(() => _rotation = _rotation.rotateCCW());
                   },
