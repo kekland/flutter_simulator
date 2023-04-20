@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'package:matrix4_transform/matrix4_transform.dart';
+import 'dart:ui' as ui;
 
 final iPhone14 = DeviceInfo(
   name: 'iPhone 14',
@@ -21,6 +22,7 @@ final iPhone14 = DeviceInfo(
   ),
   frame: DeviceFrame(
     size: _sizeWithBorder,
+    screenDependentPainter: () => HomeIndicatorPainter(),
     builder: (context, child, rotation, overlayStyle) => _FrameWidget(
       overlayStyle: overlayStyle,
       rotation: rotation,
@@ -204,8 +206,6 @@ class _ForegroundFramePainter extends DeviceForegroundPainter {
     if (rotation.isPortrait) {
       _drawStatusBar(canvas, size);
     }
-
-    _drawBottomBar(canvas, size, screenSize);
   }
 
   void _drawStatusBar(Canvas canvas, Size size) {
@@ -369,8 +369,16 @@ class _ForegroundFramePainter extends DeviceForegroundPainter {
 
     canvas.drawPath(notchPath, borderPaint);
   }
+}
 
-  void _drawBottomBar(Canvas canvas, Size size, Size screenSize) {
+class HomeIndicatorPainter extends DeviceScreenDependentPainter {
+  @override
+  void paintContents(
+    Canvas canvas,
+    Size size,
+    Size screenSize,
+    DeviceRotation rotation,
+  ) {
     final landscapeBottomBarSize = const Size(651, 15) / 3;
     final bottomBarSize = const Size(417, 15) / 3;
     const radius = Radius.circular(15 / 3);
@@ -381,17 +389,54 @@ class _ForegroundFramePainter extends DeviceForegroundPainter {
       height: screenSize.height,
     );
 
+    final offset = const Offset(0, 31.5) / 3;
+
+    final homeIndicatorSize =
+        rotation.isLandscape ? landscapeBottomBarSize : bottomBarSize;
+
     final rect = Rect.fromCenter(
-      center: screenRect.bottomCenter - const Offset(0, 31.5) / 3,
-      width: rotation.isLandscape
-          ? landscapeBottomBarSize.width
-          : bottomBarSize.width,
-      height: bottomBarSize.height,
+      center: screenRect.bottomCenter - offset,
+      width: homeIndicatorSize.width,
+      height: homeIndicatorSize.height,
     );
+
+    final screenPoint = screenSize.bottomCenter(Offset.zero) - offset;
+
+    final screenColor = getScreenPixel(screenPoint) ?? Colors.white;
+    final color =
+        screenColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+    const sampleCount = 16;
+    final lumas = <double>[];
+
+    for (var i = 0; i < sampleCount; i++) {
+      final x = rect.left + (rect.width / sampleCount) * i;
+      final y = rect.top + rect.height / 2;
+
+      final point = Offset(x, y);
+
+      final pixelColor = getScreenPixel(point);
+
+      if (pixelColor != null) {
+        final luminance = pixelColor.computeLuminance();
+        lumas.add(luminance);
+      }
+    }
+
+    final avgLuma = lumas.reduce((a, b) => a + b) / lumas.length;
+
+    // final shader = ui.Gradient.linear(
+    //   rect.centerLeft,
+    //   rect.centerRight,
+    //   lumas
+    //       .map((v) => v > 0.5 ? const Color(0xFF484848) : Colors.white)
+    //       .toList(),
+    //   List.generate(lumas.length, (i) => i / (lumas.length - 1)),
+    // );
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
-      Paint()..color = Colors.black,
+      Paint()..color = avgLuma > 0.5 ? Colors.black : Colors.white,
     );
   }
 }

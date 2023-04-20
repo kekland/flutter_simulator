@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/devices/devices.dart';
+import 'dart:ui' as ui;
 import 'package:matrix4_transform/matrix4_transform.dart';
 
 abstract class DeviceFramePainter extends CustomPainter {
@@ -101,4 +102,45 @@ abstract class DeviceForegroundPainter extends CustomPainter {
   bool shouldRepaint(DeviceForegroundPainter oldDelegate) =>
       oldDelegate.rotation != rotation ||
       oldDelegate.overlayStyle != overlayStyle;
+}
+
+abstract class DeviceScreenDependentPainter {
+  int? width;
+  ByteData? _byteData;
+
+  Color? getScreenPixel(Offset position) {
+    if (_byteData == null || width == null) return null;
+
+    final x = position.dx.toInt();
+    final y = position.dy.toInt();
+
+    final index = (y * (width!.toInt()) + x) * 4;
+
+    final r = _byteData!.getUint8(index);
+    final g = _byteData!.getUint8(index + 1);
+    final b = _byteData!.getUint8(index + 2);
+    final a = _byteData!.getUint8(index + 3);
+
+    return Color.fromARGB(a, r, g, b);
+  }
+
+  void paint(
+    Canvas canvas,
+    Size size,
+    Size screenSize,
+    DeviceRotation rotation,
+    ByteData? byteData,
+  ) {
+    width = screenSize.width.toInt();
+    _byteData = byteData;
+
+    paintContents(canvas, size, screenSize, rotation);
+  }
+
+  void paintContents(
+    Canvas canvas,
+    Size size,
+    Size screenSize,
+    DeviceRotation rotation,
+  );
 }

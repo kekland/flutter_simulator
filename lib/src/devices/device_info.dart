@@ -36,9 +36,11 @@ typedef DeviceFrameBuilder = Widget Function(
 class DeviceFrame {
   DeviceFrame({
     required this.builder,
+    this.screenDependentPainter,
     required this.size,
   });
 
   final DeviceFrameBuilder builder;
+  final DeviceScreenDependentPainter Function()? screenDependentPainter;
   final Size size;
 }

@@ -94,13 +94,18 @@ class _DeviceFrameAppState extends State<DeviceFrameApp>
                   initialDeviceInfo: _deviceInfo,
                   onDeviceInfoChanged: (v) {
                     debugDefaultTargetPlatformOverride = v?.platform;
+                    FlutterSimulatorWidgetBinding.instance!.currentDevice = v;
                     setState(() => _deviceInfo = v);
                   },
                   onRotateCCW: () {
                     setState(() => _rotation = _rotation.rotateCCW());
+                    FlutterSimulatorWidgetBinding.instance!.currentRotation =
+                        _rotation;
                   },
                   onRotateCW: () {
                     setState(() => _rotation = _rotation.rotateCW());
+                    FlutterSimulatorWidgetBinding.instance!.currentRotation =
+                        _rotation;
                   },
                   onScreenshot: () {
                     takeScreenshot(

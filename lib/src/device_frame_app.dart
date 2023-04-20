@@ -7,11 +7,14 @@ void runFlutterSimulatorApp(Widget app) {
     ..attachRootWidget(
       DeviceFrameApp(
         child: RepaintBoundary(
-          key: FlutterSimulatorWidgetBinding.instance!.deviceScreenKey,
-          child: app,
+          key: FlutterSimulatorWidgetBinding
+              .instance!.screenDependentPainterRepaintBoundaryKey,
+          child: RepaintBoundary(
+            key: FlutterSimulatorWidgetBinding.instance!.deviceScreenKey,
+            child: app,
+          ),
         ),
       ),
     )
     ..scheduleWarmUpFrame();
 }
-

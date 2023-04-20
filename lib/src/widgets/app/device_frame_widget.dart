@@ -38,14 +38,16 @@ class DeviceFrameWidget extends StatelessWidget {
   }
 
   Widget _buildApp(BuildContext context) {
-    return MediaQuery(
-      data: _screenMediaQueryData,
-      child: FittedBox(
-        fit: BoxFit.fill,
-        child: SizedBox(
-          width: _screenMediaQueryData.size.width,
-          height: _screenMediaQueryData.size.height,
-          child: child,
+    return RepaintBoundary(
+      child: MediaQuery(
+        data: _screenMediaQueryData,
+        child: FittedBox(
+          fit: BoxFit.fill,
+          child: SizedBox(
+            width: _screenMediaQueryData.size.width,
+            height: _screenMediaQueryData.size.height,
+            child: child,
+          ),
         ),
       ),
     );

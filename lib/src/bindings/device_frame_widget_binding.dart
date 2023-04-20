@@ -2,10 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_simulator/flutter_simulator.dart';
+import 'dart:ui' as ui;
 import 'package:flutter_simulator/src/bindings/interceptable_binary_messenger.dart';
+import 'package:flutter_simulator/src/bindings/interceptable_renderer_binding.dart';
+import 'package:flutter_simulator/src/flutter/widget_inspector.dart';
 
 class FlutterSimulatorWidgetBinding extends WidgetsFlutterBinding
-    with InterceptableDefaultBinaryMessengerBinding {
+    with
+        InterceptableDefaultBinaryMessengerBinding,
+        InterceptableRendererBinding {
   static WidgetsBinding ensureInitialized() {
     if (instance != null) {
       return instance!;
@@ -22,141 +28,68 @@ class FlutterSimulatorWidgetBinding extends WidgetsFlutterBinding
   /// The layer used to compute the system chrome from annotated regions is
   /// obtained from this key.
   final deviceScreenKey = GlobalKey();
+  final screenDependentPainterRepaintBoundaryKey = GlobalKey();
+
+  var shouldReportFrame = false;
+
+  DeviceInfo? _currentDevice;
+  DeviceRotation? _currentRotation;
+  DeviceScreenDependentPainter? _screenDependentPainter;
 
   @override
-  void drawFrame() {
-    super.drawFrame();
+  InterceptableRenderView get renderView =>
+      super.renderView as InterceptableRenderView;
 
-    if (sendFramesToEngine) {
-      _updateSystemChrome();
+  set currentDevice(DeviceInfo? device) {
+    _currentDevice = device;
+    _screenDependentPainter =
+        _currentDevice?.frame?.screenDependentPainter?.call();
+
+    if (device == null) {
+      return;
     }
   }
 
-  /// Copy of [WidgetsFlutterBinding._updateSystemChrome]. Only change is that
-  /// the layer is obtained from [_deviceScreenKey].
-  void _updateSystemChrome() {
-    final deviceRenderObject =
-        deviceScreenKey.currentContext!.findRenderObject()!;
+  set currentRotation(DeviceRotation? rotation) {
+    _currentRotation = rotation;
+    renderView.markNeedsPaint();
+  }
 
-    final mediaQuery = MediaQuery.of(deviceScreenKey.currentContext!);
+  ui.Picture? paintScreenDependentPainter(ByteData? byteData) {
+    final screenRenderObject = deviceScreenKey.currentContext!
+        .findRenderObject()! as RenderRepaintBoundary;
 
-    // ignore: invalid_use_of_protected_member
-    final layer = deviceRenderObject.layer!;
-    // Take overlay style from the place where a system status bar and system
-    // navigation bar are placed to update system style overlay.
-    // The center of the system navigation bar and the center of the status bar
-    // are used to get SystemUiOverlayStyle's to update system overlay appearance.
-    //
-    //         Horizontal center of the screen
-    //                 V
-    //    ++++++++++++++++++++++++++
-    //    |                        |
-    //    |    System status bar   |  <- Vertical center of the status bar
-    //    |                        |
-    //    ++++++++++++++++++++++++++
-    //    |                        |
-    //    |        Content         |
-    //    ~                        ~
-    //    |                        |
-    //    ++++++++++++++++++++++++++
-    //    |                        |
-    //    |  System navigation bar | <- Vertical center of the navigation bar
-    //    |                        |
-    //    ++++++++++++++++++++++++++ <- bounds.bottom
-    final Rect bounds = deviceRenderObject.paintBounds;
-    // Center of the status bar
-    final Offset top = Offset(
-      // Horizontal center of the screen
-      bounds.center.dx,
-      // The vertical center of the system status bar. The system status bar
-      // height is kept as top window padding.
-      mediaQuery.padding.top / 2.0,
-    );
-    // Center of the navigation bar
-    final Offset bottom = Offset(
-      // Horizontal center of the screen
-      bounds.center.dx,
-      // Vertical center of the system navigation bar. The system navigation bar
-      // height is kept as bottom window padding. The "1" needs to be subtracted
-      // from the bottom because available pixels are in (0..bottom) range.
-      // I.e. for a device with 1920 height, bound.bottom is 1920, but the most
-      // bottom drawn pixel is at 1919 position.
-      bounds.bottom - 1.0 - mediaQuery.padding.bottom / 2.0,
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // print('paint!');
+    _screenDependentPainter?.paint(
+      canvas,
+      screenRenderObject.size,
+      screenRenderObject.size,
+      _currentRotation ?? DeviceRotation.deg0,
+      byteData,
     );
 
-    final layerOffset = (layer as OffsetLayer).offset;
+    return recorder.endRecording();
+  }
 
-    final SystemUiOverlayStyle? upperOverlayStyle =
-        layer.find<SystemUiOverlayStyle>(top + layerOffset);
-    // Only android has a customizable system navigation bar.
-    SystemUiOverlayStyle? lowerOverlayStyle;
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        lowerOverlayStyle = layer.find<SystemUiOverlayStyle>(
-          bottom + layerOffset,
-        );
-        break;
-      case TargetPlatform.iOS:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-        break;
-    }
-    // If there are no overlay style in the UI don't bother updating.
-    if (upperOverlayStyle == null && lowerOverlayStyle == null) {
-      return;
+  var didAttachScreenDependentPictureLayer = false;
+
+  @override
+  void drawFrame() {
+    if (renderView.screenDependentPictureLayer?.parent == null) {
+      final screenRenderObject = screenDependentPainterRepaintBoundaryKey
+          .currentContext
+          ?.findRenderObject() as RenderRepaintBoundary?;
+
+      if (screenRenderObject?.layer != null) {
+        screenRenderObject!.layer!
+            .append(renderView.screenDependentPictureLayer!);
+      }
     }
 
-    // If both are not null, the upper provides the status bar properties and the lower provides
-    // the system navigation bar properties. This is done for advanced use cases where a widget
-    // on the top (for instance an app bar) will create an annotated region to set the status bar
-    // style and another widget on the bottom will create an annotated region to set the system
-    // navigation bar style.
-    if (upperOverlayStyle != null && lowerOverlayStyle != null) {
-      final SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
-        statusBarBrightness: upperOverlayStyle.statusBarBrightness,
-        statusBarIconBrightness: upperOverlayStyle.statusBarIconBrightness,
-        statusBarColor: upperOverlayStyle.statusBarColor,
-        systemStatusBarContrastEnforced:
-            upperOverlayStyle.systemStatusBarContrastEnforced,
-        systemNavigationBarColor: lowerOverlayStyle.systemNavigationBarColor,
-        systemNavigationBarDividerColor:
-            lowerOverlayStyle.systemNavigationBarDividerColor,
-        systemNavigationBarIconBrightness:
-            lowerOverlayStyle.systemNavigationBarIconBrightness,
-        systemNavigationBarContrastEnforced:
-            lowerOverlayStyle.systemNavigationBarContrastEnforced,
-      );
-      SystemChrome.setSystemUIOverlayStyle(overlayStyle);
-      return;
-    }
-    // If only one of the upper or the lower overlay style is not null, it provides all properties.
-    // This is done for developer convenience as it allows setting both status bar style and
-    // navigation bar style using only one annotated region layer (for instance the one
-    // automatically created by an [AppBar]).
-    final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
-    final SystemUiOverlayStyle definedOverlayStyle =
-        (upperOverlayStyle ?? lowerOverlayStyle)!;
-    final SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
-      statusBarBrightness: definedOverlayStyle.statusBarBrightness,
-      statusBarIconBrightness: definedOverlayStyle.statusBarIconBrightness,
-      statusBarColor: definedOverlayStyle.statusBarColor,
-      systemStatusBarContrastEnforced:
-          definedOverlayStyle.systemStatusBarContrastEnforced,
-      systemNavigationBarColor:
-          isAndroid ? definedOverlayStyle.systemNavigationBarColor : null,
-      systemNavigationBarDividerColor: isAndroid
-          ? definedOverlayStyle.systemNavigationBarDividerColor
-          : null,
-      systemNavigationBarIconBrightness: isAndroid
-          ? definedOverlayStyle.systemNavigationBarIconBrightness
-          : null,
-      systemNavigationBarContrastEnforced: isAndroid
-          ? definedOverlayStyle.systemNavigationBarContrastEnforced
-          : null,
-    );
-    SystemChrome.setSystemUIOverlayStyle(overlayStyle);
+    super.drawFrame();
   }
 }
 

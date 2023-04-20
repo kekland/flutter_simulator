@@ -63,23 +63,58 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = [
+      Colors.white,
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.yellow,
+      Colors.purple,
+      Colors.orange,
+      Colors.pink,
+      Colors.teal,
+      Colors.cyan,
+      Colors.lime,
+      Colors.indigo,
+      Colors.brown,
+      Colors.grey,
+      Colors.amber,
+      Colors.lightBlue,
+      Colors.lightGreen,
+      Colors.deepOrange,
+      Colors.deepPurple,
+      Colors.blueGrey,
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      body: ListView.builder(
+        itemBuilder: (context, i) {
+          return Row(
+            children: [
+              Expanded(
+                child: ColoredBox(
+                  color: colors[i % colors.length],
+                  child: const SizedBox(
+                    width: double.infinity,
+                    height: 128.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ColoredBox(
+                  color: colors[(i + 5) % colors.length],
+                  child: const SizedBox(
+                    width: double.infinity,
+                    height: 128.0,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
