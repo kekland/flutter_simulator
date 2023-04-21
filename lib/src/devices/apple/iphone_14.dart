@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
+import 'dart:ui' as ui;
 
 const viewPadding = EdgeInsets.only(
   top: 47.0,
@@ -428,17 +429,41 @@ void _paintContentAwareDeviceScreenForeground(
 
   final avgLuma = lumas.reduce((a, b) => a + b) / lumas.length;
 
-  // final shader = ui.Gradient.linear(
-  //   rect.centerLeft,
-  //   rect.centerRight,
-  //   lumas
-  //       .map((v) => v > 0.5 ? const Color(0xFF484848) : Colors.white)
-  //       .toList(),
-  //   List.generate(lumas.length, (i) => i / (lumas.length - 1)),
-  // );
+  late final Color baseColor;
+
+  if (avgLuma > 0.85) {
+    baseColor = Colors.black;
+  } else if (avgLuma < 0.1) {
+    baseColor = const Color(0xFF484848);
+  } else {
+    baseColor = const Color(0xFF121212);
+  }
+
+  final shader = ui.Gradient.linear(
+    rect.centerLeft,
+    rect.centerRight,
+    lumas.map((v) {
+      final lumaDeviation = (v - avgLuma);
+      final deviationAbsScaled = lumaDeviation.abs() * 0.3;
+
+      late final Color color;
+
+      if (lumaDeviation > 0.0) {
+        color = baseColor.darken(deviationAbsScaled);
+      } else if (lumaDeviation < 0.0) {
+        color = baseColor.lighten(deviationAbsScaled);
+      } else {
+        color = baseColor;
+      }
+
+      return color;
+    }).toList(),
+    List.generate(lumas.length, (i) => i / (lumas.length - 1)),
+  );
 
   canvas.drawRRect(
     RRect.fromRectAndRadius(rect, radius),
-    Paint()..color = avgLuma > 0.5 ? Colors.black : Colors.white,
+    Paint()..shader = shader,
+    // Paint()..color = baseColor,
   );
 }

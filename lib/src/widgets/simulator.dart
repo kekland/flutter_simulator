@@ -156,6 +156,8 @@ class _SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
     markNeedsLayout();
   }
 
+  late Rect _largestRect;
+
   late Size _screenSize;
   late Offset _screenOffset;
   late Rect _frameRect;
@@ -204,12 +206,12 @@ class _SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
       _params,
     );
 
-    final rect = Offset.zero & Size.square(_frameSize.longestSide);
+    _largestRect = Offset.zero & Size.square(_frameSize.longestSide);
 
     _frameOffset = Offset.zero;
 
     _frameRect = Rect.fromCenter(
-      center: rect.center,
+      center: _frameSize.center(Offset.zero),
       width: _frameSize.width,
       height: _frameSize.height,
     );
@@ -230,7 +232,11 @@ class _SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
       ),
     );
 
-    size = _params.rawDeviceScreenOrientation.transformSize(_frameSize);
+    _computeTransformationMatrix();
+
+    size = MatrixUtils.transformRect(_transformationMatrix, _frameRect).size;
+    _frameRect = _frameOffset & size;
+
     _shouldResetScreenForegroundLayer = true;
 
     // windowManager.setSize(size);
@@ -287,52 +293,58 @@ class _SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
   late Matrix4 _hitTestTransformationMatrix;
   late Matrix4 _hitTestScreenTransformationMatrix;
 
-  Matrix4 _computeTransformationMatrix() {
-    final offset = size.center(Offset.zero) - _screenSize.center(_screenOffset);
+  void _computeTransformationMatrix() {
+    final center = _frameRect.center;
+    final offset = center - _screenSize.center(_screenOffset);
 
-    return Matrix4Transform()
-        .rotate(_params.deviceOrientationRad, origin: size.center(Offset.zero))
+    _transformationMatrix = Matrix4Transform()
+        .rotate(
+          _params.deviceOrientationRad,
+          origin: center,
+        )
         .translateOffset(offset)
         .matrix4;
+
+    _hitTestTransformationMatrix = Matrix4.zero()
+      ..copyInverse(_transformationMatrix);
   }
 
-  Matrix4 _computeScreenTransformatrionMatrix() {
+  void _computeScreenTransformatrionMatrix() {
     switch (_params.deviceScreenOrientation) {
       case DeviceOrientation.portraitUp:
-        return Matrix4.identity();
+        _screenTransformationMatrix = Matrix4.identity();
+        break;
 
       case DeviceOrientation.landscapeRight:
-        return Matrix4Transform()
+        _screenTransformationMatrix = Matrix4Transform()
             .translate(y: _screenSize.height)
             .rotate(-pi / 2)
             .matrix4;
+        break;
 
       case DeviceOrientation.portraitDown:
-        return Matrix4Transform()
+        _screenTransformationMatrix = Matrix4Transform()
             .translate(x: _screenSize.width, y: _screenSize.height)
             .rotate(pi)
             .matrix4;
+        break;
 
       case DeviceOrientation.landscapeLeft:
-        return Matrix4Transform()
+        _screenTransformationMatrix = Matrix4Transform()
             .translate(x: _screenSize.width)
             .rotate(pi / 2)
             .matrix4;
-      default:
-        return Matrix4.identity();
+        break;
     }
+
+    _hitTestScreenTransformationMatrix = Matrix4.zero()
+      ..copyInverse(_screenTransformationMatrix);
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    _transformationMatrix = _computeTransformationMatrix();
-
-    _hitTestTransformationMatrix = Matrix4.identity()
-      ..copyInverse(_transformationMatrix);
-
-    _screenTransformationMatrix = _computeScreenTransformatrionMatrix();
-    _hitTestScreenTransformationMatrix = Matrix4.identity()
-      ..copyInverse(_screenTransformationMatrix);
+    _computeTransformationMatrix();
+    _computeScreenTransformatrionMatrix();
 
     _transformLayerHandle.layer = context.pushTransform(
       true,

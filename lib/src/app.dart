@@ -8,18 +8,18 @@ Future<void> runFlutterSimulatorApp(Widget app) async {
   await windowManager.ensureInitialized();
 
   const windowOptions = WindowOptions(
-    size: Size(800, 600),
-    center: true,
+    size: Size(600, 600),
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
   );
 
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  await windowManager.waitUntilReadyToShow(
+    windowOptions,
+    () async {
+      await windowManager.setAsFrameless();
+      await windowManager.show();
+    },
+  );
 
   SimulatorWidgetsBinding.instance
     ..attachRootWidget(FlutterSimulatorApp(appChild: app))

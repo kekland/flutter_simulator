@@ -29,17 +29,22 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     systemUiOverlayStyle: SystemUiOverlayStyle.light,
   );
 
+  set params(SimulatorParams params) {
+    _tryResizeView(params);
+    setState(() => _params = params);
+  }
+
   @override
   void initState() {
     super.initState();
 
     _systemUiOverlayStyleNotifier.addListener(() {
-      setState(() {
-        _params = _params.copyWith(
-          systemUiOverlayStyle: _systemUiOverlayStyleNotifier.value!,
-        );
-      });
+      params = _params.copyWith(
+        systemUiOverlayStyle: _systemUiOverlayStyleNotifier.value!,
+      );
     });
+
+    _tryResizeView(_params);
   }
 
   @override
@@ -48,27 +53,72 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    var totalSize = _params.deviceFrame.transformSize(
+  Future<void> _tryResizeView(SimulatorParams newParams) async {
+    const appAdditionalWidth = 32.0;
+    final appAdditionalHeight = 64.0 +
+        SimulatorHeaderWidget.preferredHeight +
+        SimulatorToolbarWidget.preferredHeight;
+
+    final deviceFrameSize = _params.deviceFrame.transformSize(
       _params.rawDeviceScreenOrientation.transformSize(
         _params.deviceInfo.screenSize,
       ),
       _params,
     );
 
-    totalSize = Size(
-      totalSize.width,
-      totalSize.height +
-          32.0 +
-          SimulatorHeaderWidget.preferredHeight +
-          SimulatorToolbarWidget.preferredHeight,
+    final newDeviceFrameSize = newParams.deviceFrame.transformSize(
+      newParams.rawDeviceScreenOrientation.transformSize(
+        _params.deviceInfo.screenSize,
+      ),
+      newParams,
     );
 
-    windowManager.setMaximumSize(totalSize).then((v) {
-      windowManager.setSize(totalSize);
-    });
+    final maxSize = Size(
+      deviceFrameSize.width + appAdditionalWidth,
+      deviceFrameSize.height + appAdditionalHeight,
+    );
 
+    final newMaxSize = Size(
+      newDeviceFrameSize.width + appAdditionalWidth,
+      newDeviceFrameSize.height + appAdditionalHeight,
+    );
+
+    final frameRenderObject = SimulatorWidgetsBinding
+        .instance.deviceFrameKey.currentContext
+        ?.findRenderObject();
+
+    if (frameRenderObject == null) {
+      await windowManager.setMaximumSize(maxSize);
+      await windowManager.setAspectRatio(maxSize.aspectRatio);
+      windowManager.setSize(maxSize);
+    } else {
+      if (deviceFrameSize == newDeviceFrameSize) {
+        return;
+      }
+
+      final currentWindowSize = await windowManager.getSize();
+
+      var newComputedMaxSize = newDeviceFrameSize *
+          (currentWindowSize.width - appAdditionalWidth) /
+          (maxSize.width - appAdditionalWidth);
+
+      newComputedMaxSize = Size(
+        (newComputedMaxSize.width + appAdditionalWidth).roundToDouble(),
+        (newComputedMaxSize.height + appAdditionalHeight).roundToDouble(),
+      );
+
+      await windowManager.setMaximumSize(Size.square(newMaxSize.longestSide));
+      windowManager.setSize(Size.square(newComputedMaxSize.longestSide));
+
+      await Future.delayed(Duration(milliseconds: 300));
+
+      await windowManager.setMaximumSize(newMaxSize);
+      windowManager.setSize(newComputedMaxSize);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.from(
@@ -78,13 +128,17 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
         ),
         useMaterial3: true,
       ),
-      home: Builder(
-        builder: (context) => Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
+      home: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Builder(
+          builder: (context) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SimulatorHeaderWidget(
                 params: _params,
+                onChanged: (params) {
+                  this.params = params;
+                },
               ),
               const SizedBox(height: 16.0),
               Flexible(
@@ -102,8 +156,9 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
               SimulatorToolbarWidget(
                 params: _params,
                 onChanged: (params) {
-                  setState(() => _params = params);
+                  this.params = params;
                 },
+                onScreenshot: () {},
               ),
             ],
           ),

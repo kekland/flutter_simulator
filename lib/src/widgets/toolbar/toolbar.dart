@@ -8,12 +8,14 @@ class SimulatorToolbarWidget extends StatelessWidget {
     super.key,
     required this.params,
     required this.onChanged,
+    required this.onScreenshot,
   });
 
   static double get preferredHeight => 56.0;
 
   final SimulatorParams params;
   final ValueChanged<SimulatorParams> onChanged;
+  final VoidCallback onScreenshot;
 
   @override
   Widget build(BuildContext context) {
@@ -42,32 +44,33 @@ class SimulatorToolbarWidget extends StatelessWidget {
                 ),
               ),
             ),
-            _DeviceFrameToolbarEntryWidget(
-              child: IconButton(
-                icon: const Icon(Icons.rotate_90_degrees_ccw_rounded),
-                padding: const EdgeInsets.all(12.0),
-                onPressed: () {
-                  onChanged(
-                    params.copyWith(
-                      deviceOrientationRad: params.deviceOrientationRad - pi / 2,
-                    ),
-                  );
-                },
-              ),
-            ),
-            _DeviceFrameToolbarEntryWidget(
-              child: IconButton(
-                icon: const Icon(Icons.rotate_90_degrees_cw_rounded),
-                padding: const EdgeInsets.all(12.0),
-                onPressed: () {
-                  onChanged(
-                    params.copyWith(
-                      deviceOrientationRad: params.deviceOrientationRad + pi / 2,
-                    ),
-                  );
-                },
-              ),
-            ),
+            // _DeviceFrameToolbarEntryWidget(
+            //   child: IconButton(
+            //     icon: const Icon(Icons.rotate_90_degrees_ccw_rounded),
+            //     padding: const EdgeInsets.all(12.0),
+            //     onPressed: () {
+            //       onChanged(
+            //         params.copyWith(
+            //           deviceOrientationRad: params.deviceOrientationRad - pi / 2,
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
+            // _DeviceFrameToolbarEntryWidget(
+            //   child: IconButton(
+            //     icon: const Icon(Icons.rotate_90_degrees_cw_rounded),
+            //     padding: const EdgeInsets.all(12.0),
+            //     onPressed: () {
+            //       onChanged(
+            //         params.copyWith(
+            //           deviceOrientationRad:
+            //               params.deviceOrientationRad + pi / 2,
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
             _DeviceFrameToolbarEntryWidget(
               child: IconButton(
                 icon: Icon(
@@ -81,16 +84,34 @@ class SimulatorToolbarWidget extends StatelessWidget {
                       params.simulatorBrightness == Brightness.light
                           ? Brightness.dark
                           : Brightness.light;
-    
+
                   onChanged(params.copyWith(simulatorBrightness: brightness));
                 },
               ),
             ),
+            // _DeviceFrameToolbarEntryWidget(
+            //   child: IconButton(
+            //     icon: const Icon(Icons.screenshot_rounded),
+            //     padding: const EdgeInsets.all(12.0),
+            //     onPressed: () {},
+            //   ),
+            // ),
             _DeviceFrameToolbarEntryWidget(
-              child: IconButton(
-                icon: const Icon(Icons.screenshot_rounded),
-                padding: const EdgeInsets.all(12.0),
-                onPressed: () {},
+              child: PopupMenuButton(
+                child: const SizedBox(
+                  width: 32.0,
+                  height: 48.0,
+                  child: Icon(Icons.more_vert_rounded),
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    onTap: onScreenshot,
+                    child: const PopupMenuItemChild(
+                      icon: Icons.image_rounded,
+                      label: 'Take screenshot',
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -110,11 +131,36 @@ class _DeviceFrameToolbarEntryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: SizedBox(
-        height: 48.0,
-        child: Center(child: child),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8.0),
+      child: Card(
+        child: SizedBox(
+          height: 48.0,
+          child: Center(child: child),
+        ),
       ),
+    );
+  }
+}
+
+class PopupMenuItemChild extends StatelessWidget {
+  const PopupMenuItemChild({
+    super.key,
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon),
+        const SizedBox(width: 8.0),
+        Text(label),
+      ],
     );
   }
 }

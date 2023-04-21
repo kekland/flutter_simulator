@@ -106,6 +106,36 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: ListView.builder(
         itemBuilder: (context, i) {
+          if (i % 5 == 0) {
+            return ColoredBox(
+              color: Colors.white,
+              child: const SizedBox(width: double.infinity, height: 128.0),
+            );
+          }
+          if (i % 5 == 1) {
+            return ColoredBox(
+              color: Colors.black,
+              child: const SizedBox(width: double.infinity, height: 128.0),
+            );
+          }
+
+          if (i % 5 == 2) {
+            return Row(
+              children: [
+                for (var j = 0; j < 5; j++)
+                  Expanded(
+                    child: ColoredBox(
+                      color: (i + j) % 2 == 0? Colors.white : Colors.black,
+                      child: const SizedBox(
+                        width: double.infinity,
+                        height: 128.0,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }
+
           return Row(
             children: [
               Expanded(
