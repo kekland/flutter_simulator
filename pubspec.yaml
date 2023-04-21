@@ -12,6 +12,8 @@ dependencies:
   matrix4_transform: ^2.0.1
   path_provider: ^2.0.14
   image: ^4.0.15
+  vector_math: ^2.1.4
+  window_manager: ^0.3.2
 
 dev_dependencies:
   flutter_test:

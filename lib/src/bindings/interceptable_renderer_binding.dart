@@ -1,12 +1,18 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_simulator/flutter_simulator.dart';
 import 'dart:ui' as ui;
 
+import 'package:flutter_simulator/flutter_simulator.dart';
+
+/// A mixin on [WidgetsFlutterBinding] that allows for intercepting the scene
+/// building process. It initializes the [renderView] with a custom
+/// implementation called [InterceptableRenderView].
 mixin InterceptableRendererBinding on WidgetsFlutterBinding {
   @override
   void initRenderView() {
@@ -17,57 +23,40 @@ mixin InterceptableRendererBinding on WidgetsFlutterBinding {
 
     renderView.prepareInitialFrame();
   }
+
+  @override
+  InterceptableRenderView get renderView =>
+      super.renderView as InterceptableRenderView;
 }
 
+/// A [RenderView] that allows for intercepting the scene building process.
+///
+/// This is used to allow for the device frame to be painted on top of the
+/// Flutter app.
 class InterceptableRenderView extends RenderView {
   InterceptableRenderView({
     required super.configuration,
-    required super.window,
-  });
+    required ui.FlutterView window,
+  })  : _window = window,
+        super(window: window);
 
-  ByteData? _screenByteData;
+  final ui.FlutterView _window;
 
-  /// When a frame from the screen has been captured.
-  ///
-  /// Use [onFrameCaptured] to set this value.
-  void Function(ByteData?)? _onFrameCaptured;
+  /// Callback for before the scene is built in [compositeFrame].
+  final onBeforeBuildSceneNotifier = ChangeNotifier();
 
-  @override
-  void scheduleInitialPaint(ContainerLayer rootLayer) {
-    super.scheduleInitialPaint(rootLayer);
+  /// Callback for after the scene is built in [compositeFrame].
+  final onAfterBuildSceneNotifier = ChangeNotifier();
 
-    screenDependentPictureLayer = PictureLayer(
-      Offset.zero & ui.window.physicalSize,
-    );
-
-    _screenDependentPictureLayerHandle = LayerHandle(
-      screenDependentPictureLayer,
-    );
-  }
-
-  // ignore: unused_field
-  LayerHandle? _screenDependentPictureLayerHandle;
-  PictureLayer? screenDependentPictureLayer;
-
-  set onFrameCaptured(void Function(ByteData?)? onFrameCaptured) {
-    _onFrameCaptured = onFrameCaptured;
-  }
-
+  /// Copy of the original [RenderView.compositeFrame], with callbacks for
+  /// before and after the scene is built.
   @override
   void compositeFrame() {
     if (!kReleaseMode) {
       Timeline.startSync('COMPOSITING');
     }
-
     try {
-      if (screenDependentPictureLayer != null) {
-        final screenDependentPicture =
-            FlutterSimulatorWidgetBinding.instance!.paintScreenDependentPainter(
-          _screenByteData,
-        );
-
-        screenDependentPictureLayer!.picture = screenDependentPicture;
-      }
+      onBeforeBuildSceneNotifier.notifyListeners();
 
       final ui.SceneBuilder builder = ui.SceneBuilder();
       final ui.Scene scene = layer!.buildScene(builder);
@@ -76,20 +65,11 @@ class InterceptableRenderView extends RenderView {
         _updateSystemChrome();
       }
 
-      final deviceScreenKey =
-          FlutterSimulatorWidgetBinding.instance!.deviceScreenKey;
+      onAfterBuildSceneNotifier.notifyListeners();
 
-      final screenRenderObject = deviceScreenKey.currentContext!
-          .findRenderObject()! as RenderRepaintBoundary;
-
-      final image = screenRenderObject.toImageSync();
-      image.toByteData().then((v) {
-        _screenByteData = v;
-        image.dispose();
-      });
-
-      ui.window.render(scene);
+      _window.render(scene);
       scene.dispose();
+
       assert(() {
         if (debugRepaintRainbowEnabled || debugRepaintTextRainbowEnabled) {
           debugCurrentRepaintColor = debugCurrentRepaintColor
@@ -104,17 +84,19 @@ class InterceptableRenderView extends RenderView {
     }
   }
 
+  /// Copy of [RenderView._updateSystemChrome] with the following changes:
+  /// - [RenderView] is replaced with [InterceptableRenderView]
+  /// - Utilizes the device screen area instead of the entire screen.
   void _updateSystemChrome() {
-    final deviceScreenKey =
-        FlutterSimulatorWidgetBinding.instance!.deviceScreenKey;
-
-    final deviceRenderObject =
-        deviceScreenKey.currentContext!.findRenderObject()!;
+    final deviceScreenKey = SimulatorWidgetsBinding.instance.deviceScreenKey;
+    final deviceScreenRenderObject =
+        SimulatorWidgetsBinding.instance.deviceScreenRenderObject;
 
     final mediaQuery = MediaQuery.of(deviceScreenKey.currentContext!);
 
-    // ignore: invalid_use_of_protected_member
-    final layer = deviceRenderObject.layer!;
+    final layer = deviceScreenRenderObject.layer;
+    if (layer == null) return;
+
     // Take overlay style from the place where a system status bar and system
     // navigation bar are placed to update system style overlay.
     // The center of the system navigation bar and the center of the status bar
@@ -136,7 +118,7 @@ class InterceptableRenderView extends RenderView {
     //    |  System navigation bar | <- Vertical center of the navigation bar
     //    |                        |
     //    ++++++++++++++++++++++++++ <- bounds.bottom
-    final Rect bounds = deviceRenderObject.paintBounds;
+    final Rect bounds = deviceScreenRenderObject.paintBounds;
     // Center of the status bar
     final Offset top = Offset(
       // Horizontal center of the screen

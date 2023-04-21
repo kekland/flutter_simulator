@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_simulator/flutter_simulator.dart';
 
 void main() {
@@ -17,22 +18,35 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final lightTheme = ThemeData.from(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.green,
+        brightness: Brightness.dark,
+      ),
+    ).copyWith(
+      appBarTheme: const AppBarTheme(
+        color: Colors.white,
+        foregroundColor: Colors.black,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+      ),
+    );
+
+    final darkTheme = ThemeData.from(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.green,
+        brightness: Brightness.dark,
+      ),
+    );
+
     return MaterialApp(
       title: 'Flutter Demo',
       useInheritedMediaQuery: true,
       scrollBehavior: FlutterSimulatorScrollBehavior(),
-      theme: ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.light,
-        ),
-      ),
-      darkTheme: ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: lightTheme,
+      darkTheme: darkTheme,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
