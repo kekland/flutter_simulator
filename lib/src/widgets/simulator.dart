@@ -104,11 +104,12 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: SimulatorWidgetsBinding.instance.deviceFrameKey,
-      child: FittedBox(
-        fit: BoxFit.fill,
-        child: ResizableGestureDetectorWidget(
+    return FittedBox(
+      fit: BoxFit.contain,
+      alignment: Alignment.topLeft,
+      child: ResizableGestureDetectorWidget(
+        child: RepaintBoundary(
+          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
           child: _SimulatorRenderObjectWidget(
             key: const Key('simulator-render-object'),
             params: widget.params,

@@ -149,22 +149,6 @@ void _paintPhysicalDeviceFrame(
   //   Paint()..color = Colors.black,
   // );
 
-  final outerRRect = RRect.fromRectAndRadius(
-    Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: screenSize.width + _totalBorderWidth * 2,
-      height: screenSize.height + _totalBorderWidth * 2,
-    ),
-    _screenRadius,
-  );
-
-  context.canvas.drawShadow(
-    Path()..addRRect(outerRRect),
-    Colors.black.withOpacity(0.36),
-    24.0,
-    false,
-  );
-
   _paintButtons();
 
   _paintBorder(

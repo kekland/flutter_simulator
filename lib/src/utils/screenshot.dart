@@ -50,7 +50,8 @@ Future<void> takeScreenshot(
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 88.0),
+      shape: const StadiumBorder(),
+      margin: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 48.0),
       content: const Text('Screenshot saved to Downloads'),
       action: canOpen
           ? SnackBarAction(

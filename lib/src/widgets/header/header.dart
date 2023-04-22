@@ -9,12 +9,18 @@ class SimulatorHeaderWidget extends StatelessWidget {
     super.key,
     required this.params,
     required this.onChanged,
+    required this.onScreenshot,
+    required this.onScreenshotDeviceFrame,
+    required this.onScreenshotDeviceScreen,
   });
 
   static double get preferredHeight => 64.0;
 
   final SimulatorParams params;
   final ValueChanged<SimulatorParams> onChanged;
+  final VoidCallback onScreenshot;
+  final VoidCallback onScreenshotDeviceFrame;
+  final VoidCallback onScreenshotDeviceScreen;
 
   String get titleString {
     final label = params.applicationSwitcherDescription?.label;
@@ -63,69 +69,144 @@ class SimulatorHeaderWidget extends StatelessWidget {
         color: color,
         margin: EdgeInsets.zero,
         elevation: 4.0,
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          alignment: Alignment.centerLeft,
-          child: GestureDetector(
-            onPanStart: (_) {
-              windowManager.startDragging();
-            },
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: size.width,
-              height: double.infinity,
-              child: Row(
-                children: [
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          titleString,
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(height: 1.0, color: foregroundColor),
+        child: GestureDetector(
+          onPanStart: (_) {
+            windowManager.startDragging();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            width: size.width,
+            height: double.infinity,
+            child: Row(
+              children: [
+                const SizedBox(width: 8.0),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24.0),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    shape: const CircleBorder(),
+                    child: PopupMenuButton(
+                      child: SizedBox(
+                        width: 48.0,
+                        height: 48.0,
+                        child: Icon(
+                          Icons.more_vert_rounded,
+                          color: foregroundColor,
                         ),
-                        const SizedBox(height: 2.0),
-                        Text(
-                          '${params.deviceInfo.name} - $screenSizeString',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            height: 1.0,
-                            color: foregroundColor?.withOpacity(0.3),
+                      ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          onTap: onScreenshot,
+                          child: const PopupMenuItemChild(
+                            icon: Icons.image_rounded,
+                            label: 'Take screenshot',
+                          ),
+                        ),
+                        PopupMenuItem(
+                          onTap: onScreenshotDeviceFrame,
+                          child: const PopupMenuItemChild(
+                            icon: Icons.phone_iphone_rounded,
+                            label: 'Capture device frame',
+                          ),
+                        ),
+                        PopupMenuItem(
+                          onTap: onScreenshotDeviceScreen,
+                          child: const PopupMenuItemChild(
+                            icon: Icons.image_rounded,
+                            label: 'Capture device screen',
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      onChanged(
-                        params.copyWith(
-                          deviceOrientationRad:
-                              params.deviceOrientationRad + pi / 2,
+                ),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titleString,
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(height: 1.0, color: foregroundColor),
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        '${params.deviceInfo.name} - $screenSizeString',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          height: 1.0,
+                          color: foregroundColor?.withOpacity(0.3),
                         ),
-                      );
-                    },
-                    icon: Icon(
-                      Icons.rotate_90_degrees_cw_rounded,
-                      color: foregroundColor,
-                    ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      windowManager.close();
-                    },
-                    icon: Icon(Icons.close_rounded, color: foregroundColor),
+                ),
+                IconButton(
+                  icon: Icon(
+                    params.simulatorBrightness == Brightness.light
+                        ? Icons.sunny
+                        : Icons.nightlight,
+                    color: foregroundColor,
                   ),
-                  const SizedBox(width: 8.0),
-                ],
-              ),
+                  padding: const EdgeInsets.all(12.0),
+                  onPressed: () {
+                    final brightness =
+                        params.simulatorBrightness == Brightness.light
+                            ? Brightness.dark
+                            : Brightness.light;
+
+                    onChanged(params.copyWith(simulatorBrightness: brightness));
+                  },
+                ),
+                IconButton(
+                  onPressed: () {
+                    onChanged(
+                      params.copyWith(
+                        deviceOrientationRad:
+                            params.deviceOrientationRad + pi / 2,
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.rotate_90_degrees_cw_rounded,
+                    color: foregroundColor,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    windowManager.close();
+                  },
+                  icon: Icon(Icons.close_rounded, color: foregroundColor),
+                ),
+                const SizedBox(width: 8.0),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class PopupMenuItemChild extends StatelessWidget {
+  const PopupMenuItemChild({
+    super.key,
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon),
+        const SizedBox(width: 8.0),
+        Text(label),
+      ],
     );
   }
 }

@@ -431,10 +431,9 @@ packages:
   window_manager:
     dependency: transitive
     description:
-      name: window_manager
-      sha256: "2b2572442b2a5178642730442dc625ac088244f5827b1f0811371b1b7485eb62"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../window_manager"
+      relative: true
+    source: path
     version: "0.3.2"
   xdg_directories:
     dependency: transitive

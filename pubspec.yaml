@@ -14,7 +14,8 @@ dependencies:
   image: ^4.0.15
   url_launcher: ^6.1.10
   vector_math: ^2.1.4
-  window_manager: ^0.3.2
+  window_manager:
+    path: ../window_manager
 
 dev_dependencies:
   flutter_test:
