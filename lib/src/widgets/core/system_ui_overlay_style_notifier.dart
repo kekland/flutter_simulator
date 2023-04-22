@@ -28,8 +28,6 @@ class SystemUiOverlayStyleNotifier extends ChangeNotifier {
   }
 
   Future<Object?>? _onMethodCall(MethodCall message) {
-    print(message);
-    print(appPreferredOrientations);
     if (message.method == 'SystemChrome.setSystemUIOverlayStyle') {
       final data = message.arguments as Map<String, dynamic>;
       systemUiOverlayStyle = systemUiOverlayStyleFromJson(data);

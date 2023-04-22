@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_desktop_cursor/flutter_desktop_cursor.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -112,7 +113,7 @@ class _MacOSResizableGestureDetectorState
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: SystemMouseCursors.resizeUpLeftDownRight,
+      cursor: FlutterDesktopCursors.resizeUpLeftDownRight,
       hitTestBehavior: HitTestBehavior.deferToChild,
       child: GestureDetector(
         behavior: HitTestBehavior.deferToChild,

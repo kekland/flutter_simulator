@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_desktop_cursor: ^0.0.1
   matrix4_transform: ^2.0.1
   path_provider: ^2.0.14
   image: ^4.0.15
@@ -17,6 +18,7 @@ dependencies:
   window_manager:
     git: 
       url: https://github.com/kekland/window_manager
+      ref: 37ae2cf
 
 dev_dependencies:
   flutter_test:
