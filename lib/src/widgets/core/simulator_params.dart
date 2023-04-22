@@ -13,11 +13,13 @@ class SimulatorParams {
     required this.previousScreenOrientation,
     required this.simulatorBrightness,
     required this.systemUiOverlayStyle,
+    this.applicationSwitcherDescription,
+    this.appPreferredOrientations,
   });
 
   /// Current device's info
   final DeviceInfo deviceInfo;
-  
+
   /// Physical device orientation in radians
   final double deviceOrientationRad;
 
@@ -27,10 +29,16 @@ class SimulatorParams {
   /// Brightness of the simulator
   final Brightness simulatorBrightness;
 
-  /// Intercepted SystemUiOverlayStyle from the app
+  /// Intercepted [SystemUiOverlayStyle] from the app
   final SystemUiOverlayStyle systemUiOverlayStyle;
 
-  /// Returns the preferred (raw) screen orientation based on the 
+  /// Intercepted [ApplicationSwitcherDescription] from the app
+  final ApplicationSwitcherDescription? applicationSwitcherDescription;
+
+  /// Intercepted [Set<DeviceOrientation>] from the app
+  final Set<DeviceOrientation>? appPreferredOrientations;
+
+  /// Returns the preferred (raw) screen orientation based on the
   /// [deviceOrientationRad]
   DeviceOrientation get rawDeviceScreenOrientation {
     var rotation = deviceOrientationRad -
@@ -46,23 +54,27 @@ class SimulatorParams {
     return DeviceOrientation.portraitUp;
   }
 
-  /// Returns the screen orientation based on the raw orientation from 
+  Set<DeviceOrientation> get _allowedOrientations => deviceInfo
+      .allowedOrientations
+      .intersection(appPreferredOrientations ?? deviceInfo.allowedOrientations);
+
+  /// Returns the screen orientation based on the raw orientation from
   /// [rawDeviceScreenOrientation] and the [allowedOrientations] from
   /// [deviceInfo].
   DeviceOrientation get deviceScreenOrientation {
-    final allowedOrientations = deviceInfo.allowedOrientations;
-
-    if (allowedOrientations.isEmpty) {
+    if (_allowedOrientations.isEmpty) {
       throw Exception('allowedOrientations cannot be empty');
     }
 
     final preferredOrientation = rawDeviceScreenOrientation;
 
-    if (allowedOrientations.contains(preferredOrientation)) {
+    if (_allowedOrientations.contains(preferredOrientation)) {
       return preferredOrientation;
     }
 
-    return previousScreenOrientation;
+    return _allowedOrientations.contains(previousScreenOrientation)
+        ? previousScreenOrientation
+        : _allowedOrientations.first;
   }
 
   DeviceFrame get deviceFrame => deviceInfo.deviceFrame;
@@ -78,12 +90,18 @@ class SimulatorParams {
     double? deviceOrientationRad,
     Brightness? simulatorBrightness,
     SystemUiOverlayStyle? systemUiOverlayStyle,
+    ApplicationSwitcherDescription? applicationSwitcherDescription,
+    List<DeviceOrientation>? appPreferredOrientations,
   }) {
     return SimulatorParams(
       deviceInfo: deviceInfo ?? this.deviceInfo,
       deviceOrientationRad: deviceOrientationRad ?? this.deviceOrientationRad,
       simulatorBrightness: simulatorBrightness ?? this.simulatorBrightness,
       systemUiOverlayStyle: systemUiOverlayStyle ?? this.systemUiOverlayStyle,
+      applicationSwitcherDescription:
+          applicationSwitcherDescription ?? this.applicationSwitcherDescription,
+      appPreferredOrientations:
+          appPreferredOrientations?.toSet() ?? this.appPreferredOrientations,
       previousScreenOrientation: deviceScreenOrientation,
     );
   }
@@ -112,6 +130,11 @@ class SimulatorParams {
       previousScreenOrientation: t == 0.0
           ? a!.previousScreenOrientation
           : b!.previousScreenOrientation,
+      appPreferredOrientations:
+          t == 0.0 ? a!.appPreferredOrientations : b!.appPreferredOrientations,
+      applicationSwitcherDescription: t == 0.0
+          ? a!.applicationSwitcherDescription
+          : b!.applicationSwitcherDescription,
     );
   }
 }

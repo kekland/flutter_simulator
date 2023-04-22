@@ -56,14 +56,14 @@ const _totalBorderWidth = _borderWidth + _outerBorderWidth;
 
 const _borderColor = Color(0xFF010101);
 const _outerBorderColor = Color(0xFF2C2C2C);
-const _outer2BorderColor = Color(0xFF7D7D7D);
-const _buttonOuterColor = Color(0xFF5D5D5D);
+final _outer2BorderColor = Colors.black.withOpacity(0.15);
+final _buttonOuterColor = Colors.black.withOpacity(0.15);
 const _buttonColor = Color(0xFF2B2B2B);
 
 const _notchSize = Size(484 / 3, 101 / 3);
 
 Size _transformSize(Size screenSize, SimulatorParams params) {
-  return Size(screenSize.width + 38, screenSize.height + 38);
+  return Size(screenSize.width + 45, screenSize.height + 38);
 }
 
 Offset _transformScreenOffset(
@@ -71,7 +71,7 @@ Offset _transformScreenOffset(
   Size screenSize,
   SimulatorParams params,
 ) {
-  return const Offset(19, 19);
+  return const Offset(23, 19);
 }
 
 void _paintPhysicalDeviceFrame(
@@ -95,8 +95,7 @@ void _paintPhysicalDeviceFrame(
     final size = buttonSize / 3;
     const radius = Radius.circular(3 / 3);
 
-    final buttonOffset =
-        Offset(isLeft ? -(buttonSize.width + 3) : 1287, bOffset.dy) / 3;
+    final buttonOffset = Offset(isLeft ? 0.0 : 1297, bOffset.dy) / 3;
 
     final rect = (offset + buttonOffset) & size;
     final outerRect = rect.shift(const Offset(0, -3 / 3));
@@ -136,12 +135,6 @@ void _paintPhysicalDeviceFrame(
   ) {
     final paint = Paint()..color = color;
 
-    final screenRect = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: screenSize.width,
-      height: screenSize.height,
-    );
-
     final radius = Radius.circular(_screenRadius.x + width);
     final borderRect = screenRect.inflate(width);
 
@@ -151,9 +144,25 @@ void _paintPhysicalDeviceFrame(
     );
   }
 
-  context.canvas.drawRect(
-    screenRect,
-    Paint()..color = Colors.black,
+  // context.canvas.drawRect(
+  //   screenRect,
+  //   Paint()..color = Colors.black,
+  // );
+
+  final outerRRect = RRect.fromRectAndRadius(
+    Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: screenSize.width + _totalBorderWidth * 2,
+      height: screenSize.height + _totalBorderWidth * 2,
+    ),
+    _screenRadius,
+  );
+
+  context.canvas.drawShadow(
+    Path()..addRRect(outerRRect),
+    Colors.black.withOpacity(0.36),
+    24.0,
+    false,
   );
 
   _paintButtons();
@@ -213,13 +222,13 @@ void _paintForegroundPhysicalDeviceFrame(
 ) {
   final borderPaint = Paint()..color = _borderColor;
 
-  final sizeRect = Offset.zero & size;
-  final screenRect = sizeRect.deflate(_totalBorderWidth);
-
   final notchPath = Path();
 
   notchPath.moveTo(
-    size.width / 2 - _notchSize.width / 2 - (36 / 6),
+    screenRect.width / 2 -
+        _notchSize.width / 2 -
+        (36 / 6) +
+        screenRect.topLeft.dx,
     screenRect.top - 1,
   );
 

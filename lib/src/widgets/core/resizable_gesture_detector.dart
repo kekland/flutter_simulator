@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter/material.dart';
@@ -12,7 +13,9 @@ class ResizableGestureDetectorWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.resizeUpLeftDownRight,
+      hitTestBehavior: HitTestBehavior.deferToChild,
       child: GestureDetector(
+        behavior: HitTestBehavior.deferToChild,
         onPanStart: (_) {
           windowManager.startResizing(ResizeEdge.bottomRight);
         },

@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/widgets/header/header.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../../../src/imports.dart';
+
+final _appRepaintBoundaryKey = GlobalKey();
 
 class FlutterSimulatorApp extends StatefulWidget {
   const FlutterSimulatorApp({
@@ -31,7 +37,13 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
 
   set params(SimulatorParams params) {
     _tryResizeView(params);
-    setState(() => _params = params);
+    _params = params;
+
+    debugDefaultTargetPlatformOverride = _params.deviceInfo.platform;
+
+    WidgetsBinding.instance.endOfFrame.then((_) {
+      setState(() {});
+    });
   }
 
   @override
@@ -40,7 +52,12 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
 
     _systemUiOverlayStyleNotifier.addListener(() {
       params = _params.copyWith(
-        systemUiOverlayStyle: _systemUiOverlayStyleNotifier.value!,
+        systemUiOverlayStyle:
+            _systemUiOverlayStyleNotifier.systemUiOverlayStyle,
+        applicationSwitcherDescription:
+            _systemUiOverlayStyleNotifier.applicationSwitcherDescription,
+        appPreferredOrientations:
+            _systemUiOverlayStyleNotifier.appPreferredOrientations,
       );
     });
 
@@ -68,9 +85,17 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
 
     final newDeviceFrameSize = newParams.deviceFrame.transformSize(
       newParams.rawDeviceScreenOrientation.transformSize(
-        _params.deviceInfo.screenSize,
+        newParams.deviceInfo.screenSize,
       ),
       newParams,
+    );
+
+    final minWidth = SimulatorToolbarWidget.preferredWidth;
+
+    final minSize = Size(
+      minWidth + appAdditionalWidth,
+      minWidth * newDeviceFrameSize.height / newDeviceFrameSize.width +
+          appAdditionalHeight,
     );
 
     final maxSize = Size(
@@ -88,11 +113,15 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
         ?.findRenderObject();
 
     if (frameRenderObject == null) {
+      await windowManager.setMinimumSize(minSize);
       await windowManager.setMaximumSize(maxSize);
       await windowManager.setAspectRatio(maxSize.aspectRatio);
       windowManager.setSize(maxSize);
     } else {
       if (deviceFrameSize == newDeviceFrameSize) {
+        await windowManager.setMinimumSize(minSize);
+        await windowManager.setMaximumSize(newMaxSize);
+        await windowManager.setAspectRatio(newMaxSize.aspectRatio);
         return;
       }
 
@@ -108,11 +137,14 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
       );
 
       await windowManager.setMaximumSize(Size.square(newMaxSize.longestSide));
+      await windowManager.setAspectRatio(1.0);
       windowManager.setSize(Size.square(newComputedMaxSize.longestSide));
 
-      await Future.delayed(Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 300));
 
+      await windowManager.setMinimumSize(minSize);
       await windowManager.setMaximumSize(newMaxSize);
+      await windowManager.setAspectRatio(newMaxSize.aspectRatio);
       windowManager.setSize(newComputedMaxSize);
     }
   }
@@ -120,47 +152,76 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'simulator-app',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.white,
+          seedColor: Colors.teal,
           brightness: _params.simulatorBrightness,
         ),
         useMaterial3: true,
       ),
-      home: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Builder(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SimulatorHeaderWidget(
-                params: _params,
-                onChanged: (params) {
-                  this.params = params;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              Flexible(
-                child: AnimatedSimulatorParams(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  data: _params,
-                  builder: (context, params) => SimulatorWidget(
-                    params: params,
-                    appChild: widget.appChild,
+      home: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: RepaintBoundary(
+          key: _appRepaintBoundaryKey,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Builder(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SimulatorHeaderWidget(
+                    params: _params,
+                    onChanged: (params) {
+                      this.params = params;
+                    },
                   ),
-                ),
+                  const SizedBox(height: 16.0),
+                  Flexible(
+                    child: AnimatedSimulatorParams(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      data: _params,
+                      builder: (context, params) => SimulatorWidget(
+                        params: params,
+                        appChild: widget.appChild,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Builder(
+                    builder: (context) => SimulatorToolbarWidget(
+                      params: _params,
+                      onChanged: (params) {
+                        this.params = params;
+                      },
+                      onScreenshot: () {
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: _appRepaintBoundaryKey,
+                        );
+                      },
+                      onScreenshotDeviceFrame: () {
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
+                        );
+                      },
+                      onScreenshotDeviceScreen: () {
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16.0),
-              SimulatorToolbarWidget(
-                params: _params,
-                onChanged: (params) {
-                  this.params = params;
-                },
-                onScreenshot: () {},
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -84,13 +84,17 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
       child: MouseRegion(
         cursor: SystemMouseCursors.basic,
         hitTestBehavior: HitTestBehavior.opaque,
-        child: MediaQuery(
-          data: mediaQueryData,
-          child: RepaintBoundary(
-            key: _deviceContentAwareScreenForegroundKey,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanStart: (_) {},
+          child: MediaQuery(
+            data: mediaQueryData,
             child: RepaintBoundary(
-              key: SimulatorWidgetsBinding.instance.deviceScreenKey,
-              child: widget.appChild,
+              key: _deviceContentAwareScreenForegroundKey,
+              child: RepaintBoundary(
+                key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+                child: widget.appChild,
+              ),
             ),
           ),
         ),
@@ -436,9 +440,17 @@ class _SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
 
   @override
   bool hitTestSelf(Offset position) {
-    final rect = MatrixUtils.transformRect(_transformationMatrix, _frameRect);
+    const resizableAreaPercentage = 0.2;
+
+    var resizableRect = Rect.fromPoints(
+      _frameRect.bottomRight -
+          Offset(_frameRect.longestSide, _frameRect.longestSide) *
+              resizableAreaPercentage,
+      _frameRect.bottomRight,
+    );
+
     final rrect = RRect.fromRectAndRadius(
-      rect,
+      resizableRect,
       _params.deviceFrame.frameRadius,
     );
 

@@ -17,6 +17,16 @@ class _MyAppState extends State<MyApp> {
   var _isDark = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final lightTheme = ThemeData.from(
       colorScheme: ColorScheme.fromSeed(
@@ -24,10 +34,11 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.dark,
       ),
     ).copyWith(
-      appBarTheme: const AppBarTheme(
+      scaffoldBackgroundColor: Colors.white,
+      appBarTheme: ThemeData.light().appBarTheme.copyWith(
         color: Colors.white,
         foregroundColor: Colors.black,
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
         ),
@@ -101,9 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: ListView.builder(
         itemBuilder: (context, i) {
           if (i % 5 == 0) {
@@ -125,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 for (var j = 0; j < 5; j++)
                   Expanded(
                     child: ColoredBox(
-                      color: (i + j) % 2 == 0? Colors.white : Colors.black,
+                      color: (i + j) % 2 == 0 ? Colors.white : Colors.black,
                       child: const SizedBox(
                         width: double.infinity,
                         height: 128.0,
