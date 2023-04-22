@@ -14,8 +14,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  var _isDark = false;
-
   @override
   void initState() {
     super.initState();
@@ -79,14 +77,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = [
@@ -119,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (i % 5 == 0) {
             return const ColoredBox(
               color: Colors.white,
-              child: const SizedBox(width: double.infinity, height: 128.0),
+              child: SizedBox(width: double.infinity, height: 128.0),
             );
           }
           if (i % 5 == 1) {
@@ -173,11 +163,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }

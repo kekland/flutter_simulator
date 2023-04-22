@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
-import 'package:flutter_simulator/src/widgets/header/header.dart';
 import 'package:window_manager/window_manager.dart';
 
 class WindowSizeManager with WindowListener {

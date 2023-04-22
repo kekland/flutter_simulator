@@ -4,8 +4,8 @@ import 'package:flutter_simulator/src/imports.dart';
 
 /// Listens to [SystemChrome.setSystemUIOverlayStyle] calls and notifies
 /// listeners if the value changes.
-class SystemUiOverlayStyleNotifier extends ChangeNotifier {
-  SystemUiOverlayStyleNotifier() {
+class SystemPlatformChannelInterceptor extends ChangeNotifier {
+  SystemPlatformChannelInterceptor() {
     init();
   }
 

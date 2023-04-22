@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter/material.dart';
@@ -44,7 +43,6 @@ class ResizableGestureDetectorWidget extends StatelessWidget {
 
 class _MacOSResizableGestureDetector extends StatefulWidget {
   const _MacOSResizableGestureDetector({
-    super.key,
     required this.child,
     required this.params,
   });

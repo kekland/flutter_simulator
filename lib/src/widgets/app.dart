@@ -2,13 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_simulator/src/widgets/header/header.dart';
-import 'package:window_manager/window_manager.dart';
-import '../../../../src/imports.dart';
+import 'package:flutter_simulator/src/imports.dart';
 
 final _appRepaintBoundaryKey = GlobalKey();
 
@@ -25,7 +20,7 @@ class FlutterSimulatorApp extends StatefulWidget {
 }
 
 class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
-  final _systemUiOverlayStyleNotifier = SystemUiOverlayStyleNotifier();
+  final _systemPlatformChannelInterceptor = SystemPlatformChannelInterceptor();
   final _windowSizeManager = WindowSizeManager();
 
   var _params = SimulatorParams(
@@ -52,14 +47,14 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
   void initState() {
     super.initState();
 
-    _systemUiOverlayStyleNotifier.addListener(() {
+    _systemPlatformChannelInterceptor.addListener(() {
       params = _params.copyWith(
         systemUiOverlayStyle:
-            _systemUiOverlayStyleNotifier.systemUiOverlayStyle,
+            _systemPlatformChannelInterceptor.systemUiOverlayStyle,
         applicationSwitcherDescription:
-            _systemUiOverlayStyleNotifier.applicationSwitcherDescription,
+            _systemPlatformChannelInterceptor.applicationSwitcherDescription,
         appPreferredOrientations:
-            _systemUiOverlayStyleNotifier.appPreferredOrientations,
+            _systemPlatformChannelInterceptor.appPreferredOrientations,
       );
     });
 
@@ -68,7 +63,7 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
 
   @override
   void dispose() {
-    _systemUiOverlayStyleNotifier.dispose();
+    _systemPlatformChannelInterceptor.dispose();
     _windowSizeManager.dispose();
     super.dispose();
   }

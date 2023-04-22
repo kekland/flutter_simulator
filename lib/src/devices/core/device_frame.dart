@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
-import 'package:flutter_simulator/src/widgets/simulator.dart';
 
 /// Paints the physical device frame.
 typedef PhysicalDeviceFramePainter = void Function(

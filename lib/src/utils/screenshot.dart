@@ -6,7 +6,6 @@ import 'package:flutter_simulator/flutter_simulator.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 String _generateScreenshotName() {
   final now = DateTime.now();

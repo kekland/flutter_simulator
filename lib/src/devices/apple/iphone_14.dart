@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'dart:ui' as ui;
 
@@ -81,9 +80,7 @@ void _paintPhysicalDeviceFrame(
   Rect screenRect,
   SimulatorParams params,
 ) {
-  final screenSize = screenRect.size;
-
-  void _paintButton(
+  void paintButton(
     Offset bOffset,
     Size buttonSize,
     bool isLeft,
@@ -122,14 +119,14 @@ void _paintPhysicalDeviceFrame(
     context.canvas.drawRRect(rrectBuilder(rect), paint);
   }
 
-  void _paintButtons() {
-    _paintButton(const Offset(0, 426), const Size(12, 87), true);
-    _paintButton(const Offset(0, 618), const Size(12, 207), true);
-    _paintButton(const Offset(0, 870), const Size(12, 207), true);
-    _paintButton(const Offset(0, 687), const Size(9, 342), false);
+  void paintButtons() {
+    paintButton(const Offset(0, 426), const Size(12, 87), true);
+    paintButton(const Offset(0, 618), const Size(12, 207), true);
+    paintButton(const Offset(0, 870), const Size(12, 207), true);
+    paintButton(const Offset(0, 687), const Size(9, 342), false);
   }
 
-  void _paintBorder(
+  void paintBorder(
     double width,
     Color color,
   ) {
@@ -149,24 +146,24 @@ void _paintPhysicalDeviceFrame(
   //   Paint()..color = Colors.black,
   // );
 
-  _paintButtons();
+  paintButtons();
 
-  _paintBorder(
+  paintBorder(
     _outerBorderWidth + _borderWidth + 2.0,
     Colors.black.withOpacity(0.15),
   );
 
-  _paintBorder(
+  paintBorder(
     _outerBorderWidth + _borderWidth + 1.0,
     _outer2BorderColor,
   );
 
-  _paintBorder(
+  paintBorder(
     _outerBorderWidth + _borderWidth,
     _outerBorderColor,
   );
 
-  _paintBorder(
+  paintBorder(
     _borderWidth,
     _borderColor,
   );
@@ -262,7 +259,7 @@ void _paintDeviceScreenForeground(
           ? Colors.black
           : Colors.white;
 
-  void _drawTime() {
+  void drawTime() {
     final timePainter = TextPainter(
       text: TextSpan(
         text: '10:28',
@@ -291,7 +288,7 @@ void _paintDeviceScreenForeground(
     );
   }
 
-  void _drawCellularStatus() {
+  void drawCellularStatus() {
     final squareSize = const Size.square(9) / 3;
     const radius = Radius.circular(3 / 3);
 
@@ -309,7 +306,7 @@ void _paintDeviceScreenForeground(
     }
   }
 
-  void _drawWifiIcon() {
+  void drawWifiIcon() {
     const icon = CupertinoIcons.wifi;
 
     final iconPainter = TextPainter(
@@ -336,7 +333,7 @@ void _paintDeviceScreenForeground(
     iconPainter.paint(context.canvas, offset + const Offset(975, 55) / 3);
   }
 
-  void _drawBatteryIcon() {
+  void drawBatteryIcon() {
     const icon = CupertinoIcons.battery_0;
     final iconPainter = TextPainter(
       text: TextSpan(
@@ -367,10 +364,10 @@ void _paintDeviceScreenForeground(
 
   if (params.deviceScreenOrientation.isLandscape) return;
 
-  _drawTime();
-  _drawCellularStatus();
-  _drawWifiIcon();
-  _drawBatteryIcon();
+  drawTime();
+  drawCellularStatus();
+  drawWifiIcon();
+  drawBatteryIcon();
 }
 
 void _paintContentAwareDeviceScreenForeground(
