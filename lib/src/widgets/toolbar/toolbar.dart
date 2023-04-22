@@ -14,7 +14,7 @@ class SimulatorToolbarWidget extends StatelessWidget {
   });
 
   static double get preferredWidth => 279.0;
-  static double get preferredHeight => 56.0;
+  static double get preferredHeight => 48.0;
 
   final SimulatorParams params;
   final ValueChanged<SimulatorParams> onChanged;
@@ -149,6 +149,7 @@ class _DeviceFrameToolbarEntryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.only(right: 8.0),
       elevation: 2.0,
       child: SizedBox(
         height: 48.0,

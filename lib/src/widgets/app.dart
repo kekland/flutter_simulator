@@ -24,7 +24,8 @@ class FlutterSimulatorApp extends StatefulWidget {
   State<FlutterSimulatorApp> createState() => _FlutterSimulatorAppState();
 }
 
-class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
+class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
+    with WindowListener {
   final _systemUiOverlayStyleNotifier = SystemUiOverlayStyleNotifier();
 
   var _params = SimulatorParams(
@@ -62,19 +63,21 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     });
 
     _tryResizeView(_params);
+    windowManager.addListener(this);
   }
 
   @override
   void dispose() {
+    windowManager.removeListener(this);
     _systemUiOverlayStyleNotifier.dispose();
     super.dispose();
   }
 
   Future<void> _tryResizeView(SimulatorParams newParams) async {
-    const appAdditionalWidth = 32.0;
-    final appAdditionalHeight = 64.0 +
-        SimulatorHeaderWidget.preferredHeight +
-        SimulatorToolbarWidget.preferredHeight;
+    // TODO: Clean up this mess of a code
+
+    const appAdditionalWidth = 0.0;
+    final appAdditionalHeight = 16.0 + SimulatorHeaderWidget.preferredHeight;
 
     final deviceFrameSize = _params.deviceFrame.transformSize(
       _params.rawDeviceScreenOrientation.transformSize(
@@ -113,15 +116,13 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
         ?.findRenderObject();
 
     if (frameRenderObject == null) {
-      await windowManager.setMinimumSize(minSize);
-      await windowManager.setMaximumSize(maxSize);
-      await windowManager.setAspectRatio(maxSize.aspectRatio);
+      await windowManager.setMinimumSize(minSize.rounded);
+      await windowManager.setMaximumSize(maxSize.rounded);
       windowManager.setSize(maxSize);
     } else {
       if (deviceFrameSize == newDeviceFrameSize) {
-        await windowManager.setMinimumSize(minSize);
-        await windowManager.setMaximumSize(newMaxSize);
-        await windowManager.setAspectRatio(newMaxSize.aspectRatio);
+        await windowManager.setMinimumSize(minSize.rounded);
+        await windowManager.setMaximumSize(newMaxSize.rounded);
         return;
       }
 
@@ -132,21 +133,48 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
           (maxSize.width - appAdditionalWidth);
 
       newComputedMaxSize = Size(
-        (newComputedMaxSize.width + appAdditionalWidth).roundToDouble(),
-        (newComputedMaxSize.height + appAdditionalHeight).roundToDouble(),
+        (newComputedMaxSize.width + appAdditionalWidth),
+        (newComputedMaxSize.height + appAdditionalHeight),
       );
 
-      await windowManager.setMaximumSize(Size.square(newMaxSize.longestSide));
+      await windowManager.setMaximumSize(
+        Size.square(newMaxSize.longestSide).rounded,
+      );
+
       await windowManager.setAspectRatio(1.0);
-      windowManager.setSize(Size.square(newComputedMaxSize.longestSide));
+      windowManager
+          .setSize(Size.square(newComputedMaxSize.longestSide).rounded);
 
       await Future.delayed(const Duration(milliseconds: 300));
 
-      await windowManager.setMinimumSize(minSize);
-      await windowManager.setMaximumSize(newMaxSize);
-      await windowManager.setAspectRatio(newMaxSize.aspectRatio);
-      windowManager.setSize(newComputedMaxSize);
+      await windowManager.setMinimumSize(minSize.rounded);
+      await windowManager.setMaximumSize(newMaxSize.rounded);
+      windowManager.setSize(newComputedMaxSize.rounded);
     }
+  }
+
+  Size? _lastSetSize;
+  @override
+  Future<void> onWindowResize() async {
+    // final size = await windowManager.getSize();
+    // if (size == _lastSetSize) return;
+
+    // const appAdditionalWidth = 0.0;
+    // final appAdditionalHeight = 16.0 + SimulatorHeaderWidget.preferredHeight;
+
+    // final deviceFrameSize = _params.deviceFrame.transformSize(
+    //   _params.rawDeviceScreenOrientation.transformSize(
+    //     _params.deviceInfo.screenSize,
+    //   ),
+    //   _params,
+    // );
+
+    // final width = size.width;
+    // final height = width * deviceFrameSize.height / deviceFrameSize.width +
+    //     appAdditionalHeight;
+
+    // _lastSetSize = Size(width, height).rounded;
+    // await windowManager.setSize(_lastSetSize!);
   }
 
   @override
@@ -165,62 +193,59 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
         backgroundColor: Colors.transparent,
         body: RepaintBoundary(
           key: _appRepaintBoundaryKey,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Builder(
-              builder: (context) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SimulatorHeaderWidget(
-                    params: _params,
-                    onChanged: (params) {
-                      this.params = params;
-                    },
-                  ),
-                  const SizedBox(height: 16.0),
-                  Flexible(
-                    child: AnimatedSimulatorParams(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      data: _params,
-                      builder: (context, params) => SimulatorWidget(
-                        params: params,
-                        appChild: widget.appChild,
-                      ),
+          child: Builder(
+            builder: (context) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SimulatorHeaderWidget(
+                  params: _params,
+                  onChanged: (params) {
+                    this.params = params;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                Flexible(
+                  child: AnimatedSimulatorParams(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    data: _params,
+                    builder: (context, params) => SimulatorWidget(
+                      params: params,
+                      appChild: widget.appChild,
                     ),
                   ),
-                  const SizedBox(height: 16.0),
-                  Builder(
-                    builder: (context) => SimulatorToolbarWidget(
-                      params: _params,
-                      onChanged: (params) {
-                        this.params = params;
-                      },
-                      onScreenshot: () {
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: _appRepaintBoundaryKey,
-                        );
-                      },
-                      onScreenshotDeviceFrame: () {
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
-                        );
-                      },
-                      onScreenshotDeviceScreen: () {
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: SimulatorWidgetsBinding.instance.deviceScreenKey,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                // const SizedBox(height: 16.0),
+                // Builder(
+                //   builder: (context) => SimulatorToolbarWidget(
+                //     params: _params,
+                //     onChanged: (params) {
+                //       this.params = params;
+                //     },
+                //     onScreenshot: () {
+                //       takeScreenshot(
+                //         context,
+                //         deviceInfo: _params.deviceInfo,
+                //         key: _appRepaintBoundaryKey,
+                //       );
+                //     },
+                //     onScreenshotDeviceFrame: () {
+                //       takeScreenshot(
+                //         context,
+                //         deviceInfo: _params.deviceInfo,
+                //         key: SimulatorWidgetsBinding.instance.deviceFrameKey,
+                //       );
+                //     },
+                //     onScreenshotDeviceScreen: () {
+                //       takeScreenshot(
+                //         context,
+                //         deviceInfo: _params.deviceInfo,
+                //         key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+                //       );
+                //     },
+                //   ),
+                // ),
+              ],
             ),
           ),
         ),

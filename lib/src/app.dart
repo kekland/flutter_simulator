@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
@@ -7,7 +9,7 @@ Future<void> runFlutterSimulatorApp(Widget app) async {
   SimulatorWidgetsBinding.ensureInitialized();
   await windowManager.ensureInitialized();
 
-  const windowOptions = WindowOptions(
+  final windowOptions = WindowOptions(
     size: Size(600, 600),
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
@@ -20,6 +22,16 @@ Future<void> runFlutterSimulatorApp(Widget app) async {
       await windowManager.show();
     },
   );
+
+  // if (Platform.isMacOS) {
+  //   // Investigate: black background on macOS
+  //   // See:
+  //   // https://github.com/leanflutter/window_manager/issues/293
+  //   // https://github.com/alexmercerind/flutter_acrylic
+  //   WindowManipulator.setWindowBackgroundColorToClear();
+  // }
+
+  // return runApp(SizedBox());
 
   SimulatorWidgetsBinding.instance
     ..attachRootWidget(FlutterSimulatorApp(appChild: app))
