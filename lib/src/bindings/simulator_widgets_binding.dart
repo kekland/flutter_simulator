@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/flutter_simulator.dart';
-import 'dart:ui' as ui;
+
+import 'package:window_manager/window_manager.dart';
 
 /// A [WidgetsBinding] that can be used to run the Flutter Simulator.
 ///
@@ -15,7 +15,7 @@ class SimulatorWidgetsBinding extends WidgetsFlutterBinding
         InterceptableDefaultBinaryMessengerBinding,
         InterceptableRendererBinding,
         ScreenInterceptor {
-  static SimulatorWidgetsBinding ensureInitialized() {
+  static Future<SimulatorWidgetsBinding> ensureInitialized() async {
     if (_instance != null) {
       return _instance!;
     }
@@ -23,6 +23,7 @@ class SimulatorWidgetsBinding extends WidgetsFlutterBinding
     _instance = SimulatorWidgetsBinding();
     _instance!.initScreenInterceptor();
 
+    await windowManager.ensureInitialized();
     return _instance!;
   }
 

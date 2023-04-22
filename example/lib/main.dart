@@ -36,13 +36,13 @@ class _MyAppState extends State<MyApp> {
     ).copyWith(
       scaffoldBackgroundColor: Colors.white,
       appBarTheme: ThemeData.light().appBarTheme.copyWith(
-        color: Colors.white,
-        foregroundColor: Colors.black,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-      ),
+            color: Colors.white,
+            foregroundColor: Colors.black,
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+            ),
+          ),
     );
 
     final darkTheme = ThemeData.from(
@@ -56,6 +56,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Flutter Demo',
       useInheritedMediaQuery: true,
       scrollBehavior: FlutterSimulatorScrollBehavior(),
+      shortcuts: FlutterSimulatorShortcuts.shortcuts,
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
@@ -116,15 +117,19 @@ class _MyHomePageState extends State<MyHomePage> {
       body: ListView.builder(
         itemBuilder: (context, i) {
           if (i % 5 == 0) {
-            return ColoredBox(
+            return const ColoredBox(
               color: Colors.white,
               child: const SizedBox(width: double.infinity, height: 128.0),
             );
           }
           if (i % 5 == 1) {
-            return ColoredBox(
+            return const ColoredBox(
               color: Colors.black,
-              child: const SizedBox(width: double.infinity, height: 128.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 128.0,
+                child: TextField(),
+              ),
             );
           }
 

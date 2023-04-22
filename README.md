@@ -17,5 +17,6 @@ flutter_simulator:
 
 Edit `main.dart` or create another entrypoint (something like `simulator.main.dart`), and tweak a couple of things:
 
-- Instead of calling `WidgetsFlutterBinding.ensureInitialized()`, call `SimulatorWidgetsBinding.ensureInitialized()`.
+- Instead of calling `WidgetsFlutterBinding.ensureInitialized()`, call `await SimulatorWidgetsBinding.ensureInitialized()`.
 - Instead of calling `runApp(...)`, call `runFlutterSimulatorApp(...)`
+- Doesn't work with `FlutterNativeSplash`. Remove any calls to `FlutterNativeSplash.preserve()` in the entrypoint.

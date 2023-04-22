@@ -7,8 +7,7 @@ import 'package:flutter_simulator/src/widgets/header/header.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> runFlutterSimulatorApp(Widget app) async {
-  SimulatorWidgetsBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
+  await SimulatorWidgetsBinding.ensureInitialized();
 
   final windowOptions = WindowOptions(
     size: Size(600, 600),
