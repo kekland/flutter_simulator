@@ -431,9 +431,11 @@ packages:
   window_manager:
     dependency: transitive
     description:
-      path: "../../window_manager"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "0c5ff4aea0eebd3a1c464317879cf03b98afe1de"
+      url: "https://github.com/kekland/window_manager"
+    source: git
     version: "0.3.2"
   xdg_directories:
     dependency: transitive
