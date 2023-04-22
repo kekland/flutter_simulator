@@ -10,13 +10,14 @@ class WindowSizeManager with WindowListener {
 
   Size? _lastDeviceFrameSize;
 
-  double get _minWidth => 320.0;
-  double get _headerHeight => SimulatorHeaderWidget.preferredHeight + 16.0;
+  static double get minWidth => 320.0;
+  static double get headerHeight =>
+      SimulatorHeaderWidget.preferredHeight + 16.0;
 
   final windowSizeNotifier = ValueNotifier(const Size(0, 0));
 
   Size _inflateSizeWithHeader(Size size) {
-    return Size(size.width, size.height + _headerHeight);
+    return Size(size.width, size.height + headerHeight);
   }
 
   Size _squaredSize(Size size) {
@@ -24,6 +25,7 @@ class WindowSizeManager with WindowListener {
     return Size(max, max);
   }
 
+  var _isTransitioning = false;
   Future<void> setDeviceFrameSize(Size size) async {
     await windowManager.setMaximumSize(const Size(-1, -1));
 
@@ -34,11 +36,11 @@ class WindowSizeManager with WindowListener {
     final contentAspectRatio = size.aspectRatio;
 
     final minSize = Size(
-      _minWidth,
-      (_minWidth / contentAspectRatio) + _headerHeight,
+      minWidth,
+      (minWidth / contentAspectRatio) + headerHeight,
     );
 
-    late final double scale;
+    double scale;
 
     if (_lastDeviceFrameSize != null) {
       scale = windowSize.width / _lastDeviceFrameSize!.width;
@@ -46,10 +48,15 @@ class WindowSizeManager with WindowListener {
       scale = 1.0;
     }
 
+    if (size.width * scale < minWidth) {
+      scale = minWidth / size.width;
+    }
+
     final newWindowSize = _inflateSizeWithHeader(size * scale);
 
     windowSizeNotifier.value = newWindowSize;
     if (_lastDeviceFrameSize != null) {
+      _isTransitioning = true;
       await windowManager.setTitleBarHeight(0.0);
       await windowManager.setAspectRatio(1.0);
       await windowManager.setMinimumSize(_squaredSize(minSize).rounded);
@@ -59,9 +66,10 @@ class WindowSizeManager with WindowListener {
       );
 
       await Future.delayed(const Duration(milliseconds: 300));
+      _isTransitioning = false;
     }
 
-    await windowManager.setTitleBarHeight(_headerHeight);
+    await windowManager.setTitleBarHeight(headerHeight);
     await windowManager.setAspectRatio(contentAspectRatio);
     await windowManager.setMinimumSize(minSize.rounded);
     _setWindowSize(newWindowSize);
@@ -78,6 +86,7 @@ class WindowSizeManager with WindowListener {
 
   @override
   Future<void> onWindowResize() async {
+    if (_isTransitioning) return;
     windowSizeNotifier.value = await windowManager.getSize();
   }
 

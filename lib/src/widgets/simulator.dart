@@ -108,6 +108,7 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
       fit: BoxFit.contain,
       alignment: Alignment.topLeft,
       child: ResizableGestureDetectorWidget(
+        params: params,
         child: RepaintBoundary(
           key: SimulatorWidgetsBinding.instance.deviceFrameKey,
           child: _SimulatorRenderObjectWidget(
