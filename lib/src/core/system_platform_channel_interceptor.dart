@@ -5,24 +5,38 @@ import 'package:flutter_simulator/src/imports.dart';
 /// Listens to [SystemChrome.setSystemUIOverlayStyle] calls and notifies
 /// listeners if the value changes.
 class SystemPlatformChannelInterceptor extends ChangeNotifier {
-  SystemPlatformChannelInterceptor() {
-    init();
+  SystemPlatformChannelInterceptor();
+
+  static SystemPlatformChannelInterceptor ensureInitialized() {
+    if (SystemPlatformChannelInterceptor._instance != null) {
+      return SystemPlatformChannelInterceptor._instance!;
+    }
+
+    final instance = SystemPlatformChannelInterceptor();
+    SystemPlatformChannelInterceptor._instance = instance;
+
+    SimulatorWidgetsBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      SystemChannels.platform,
+      instance._onMethodCall,
+    );
+
+    return instance;
   }
+
+  static SystemPlatformChannelInterceptor get instance => _instance!;
+  static SystemPlatformChannelInterceptor? _instance;
 
   SystemUiOverlayStyle? systemUiOverlayStyle;
   ApplicationSwitcherDescription? applicationSwitcherDescription;
   List<DeviceOrientation>? appPreferredOrientations;
 
-  /// Initialies the [SystemChannels.platform] mock method call handler.
-  void init() {
-    SimulatorWidgetsBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, _onMethodCall);
-  }
-
   @override
   void dispose() {
     SimulatorWidgetsBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
+
+    _instance = null;
 
     super.dispose();
   }

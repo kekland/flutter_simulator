@@ -20,7 +20,6 @@ class FlutterSimulatorApp extends StatefulWidget {
 }
 
 class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
-  final _systemPlatformChannelInterceptor = SystemPlatformChannelInterceptor();
   final _windowSizeManager = WindowSizeManager();
 
   var _params = SimulatorParams(
@@ -47,14 +46,18 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
   void initState() {
     super.initState();
 
-    _systemPlatformChannelInterceptor.addListener(() {
+    final platformChannelInterceptor =
+        SystemPlatformChannelInterceptor.ensureInitialized();
+
+    SystemTextInputChannelInterceptor.ensureInitialized();
+
+    platformChannelInterceptor.addListener(() {
       params = _params.copyWith(
-        systemUiOverlayStyle:
-            _systemPlatformChannelInterceptor.systemUiOverlayStyle,
+        systemUiOverlayStyle: platformChannelInterceptor.systemUiOverlayStyle,
         applicationSwitcherDescription:
-            _systemPlatformChannelInterceptor.applicationSwitcherDescription,
+            platformChannelInterceptor.applicationSwitcherDescription,
         appPreferredOrientations:
-            _systemPlatformChannelInterceptor.appPreferredOrientations,
+            platformChannelInterceptor.appPreferredOrientations,
       );
     });
 
@@ -63,7 +66,8 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
 
   @override
   void dispose() {
-    _systemPlatformChannelInterceptor.dispose();
+    SystemPlatformChannelInterceptor.instance.dispose();
+    SystemTextInputChannelInterceptor.instance.dispose();
     _windowSizeManager.dispose();
     super.dispose();
   }
