@@ -62,6 +62,11 @@ iPhone Simulator:
 - https://useyourloaf.com/blog/iphone-14-screen-sizes/
 - https://medium.com/@nathangitter/reverse-engineering-the-iphone-x-home-indicator-color-a4c112f84d34
 
+Supporters:
+- Azat Smet
+- Dilmurat Yunussov
+- Daniyar Zakarin
+
 ## Contact me
 
 If you have any questions or suggestions feel free to open an issue or email me directly at `kk.erzhan@gmail.com`.

@@ -81,7 +81,7 @@ class _MacOSResizableGestureDetectorState
     if (_initialPanPosition == null) return;
     final frameSize = widget.params.rawDeviceScreenOrientation.transformSize(
       widget.params.deviceFrame.transformSize(
-        widget.params.deviceInfo.screenSize,
+        widget.params.deviceScreenSize,
         widget.params,
       ),
     );

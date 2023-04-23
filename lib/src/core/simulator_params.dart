@@ -13,7 +13,7 @@ class _AnimatedSimulatorParams {
 
   _AnimatedSimulatorParams.fromParams(SimulatorParams params)
       : this(
-          deviceOrientationRad: params.deviceOrientationRad,
+          deviceOrientationRad: params._deviceOrientationRad,
         );
 
   final double deviceOrientationRad;
@@ -40,6 +40,8 @@ class _AnimatedSimulatorParams {
   SimulatorParams toParams(SimulatorParams params) {
     return params.copyWith(
       deviceOrientationRad: deviceOrientationRad,
+      deviceScreenSizeOverride: params.deviceScreenSizeOverride,
+      deviceOrientationRadOverride: params.deviceOrientationRadOverride,
     );
   }
 
@@ -57,20 +59,24 @@ class _AnimatedSimulatorParams {
 class SimulatorParams {
   const SimulatorParams({
     required this.deviceInfo,
-    required this.deviceOrientationRad,
+    required double deviceOrientationRad,
     required this.previousScreenOrientation,
     required this.simulatorBrightness,
     required this.systemUiOverlayStyle,
     required this.isKeyboardVisible,
     this.applicationSwitcherDescription,
     this.appPreferredOrientations,
-  });
+    this.deviceScreenSizeOverride,
+    this.deviceOrientationRadOverride,
+  }) : _deviceOrientationRad = deviceOrientationRad;
 
   /// Current device's info
   final DeviceInfo deviceInfo;
 
   /// Physical device orientation in radians
-  final double deviceOrientationRad;
+  final double _deviceOrientationRad;
+  double get deviceOrientationRad =>
+      deviceOrientationRadOverride ?? _deviceOrientationRad;
 
   /// Screen orientation in the previous frame
   final DeviceOrientation previousScreenOrientation;
@@ -89,6 +95,16 @@ class SimulatorParams {
 
   /// Whether the keyboard is shown
   final bool isKeyboardVisible;
+
+  final Size? deviceScreenSizeOverride;
+
+  final double? deviceOrientationRadOverride;
+
+  Size get deviceScreenSize =>
+      deviceScreenSizeOverride ?? deviceInfo.screenSize;
+
+  Size get phyiscalPixelsScreenSize =>
+      deviceScreenSize * deviceInfo.devicePixelRatio;
 
   /// Returns the preferred (raw) screen orientation based on the
   /// [deviceOrientationRad]
@@ -145,10 +161,12 @@ class SimulatorParams {
     ApplicationSwitcherDescription? applicationSwitcherDescription,
     List<DeviceOrientation>? appPreferredOrientations,
     bool? isKeyboardVisible,
+    Size? deviceScreenSizeOverride,
+    double? deviceOrientationRadOverride,
   }) {
     return SimulatorParams(
       deviceInfo: deviceInfo ?? this.deviceInfo,
-      deviceOrientationRad: deviceOrientationRad ?? this.deviceOrientationRad,
+      deviceOrientationRad: deviceOrientationRad ?? _deviceOrientationRad,
       simulatorBrightness: simulatorBrightness ?? this.simulatorBrightness,
       systemUiOverlayStyle: systemUiOverlayStyle ?? this.systemUiOverlayStyle,
       applicationSwitcherDescription:
@@ -157,6 +175,23 @@ class SimulatorParams {
           appPreferredOrientations?.toSet() ?? this.appPreferredOrientations,
       previousScreenOrientation: deviceScreenOrientation,
       isKeyboardVisible: isKeyboardVisible ?? this.isKeyboardVisible,
+      deviceOrientationRadOverride: deviceOrientationRadOverride,
+      deviceScreenSizeOverride: deviceScreenSizeOverride,
+    );
+  }
+
+  SimulatorParams copyWithoutOverrides() {
+    return SimulatorParams(
+      deviceInfo: deviceInfo,
+      deviceOrientationRad: deviceOrientationRad,
+      simulatorBrightness: simulatorBrightness,
+      systemUiOverlayStyle: systemUiOverlayStyle,
+      applicationSwitcherDescription: applicationSwitcherDescription,
+      appPreferredOrientations: appPreferredOrientations,
+      previousScreenOrientation: deviceScreenOrientation,
+      isKeyboardVisible: isKeyboardVisible,
+      deviceScreenSizeOverride: null,
+      deviceOrientationRadOverride: null,
     );
   }
 

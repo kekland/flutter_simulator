@@ -11,7 +11,7 @@ const _allDeviceOrientations = {
 };
 
 class DeviceInfo {
-  DeviceInfo({
+  const DeviceInfo({
     required this.name,
     required this.platform,
     required this.screenDiagonalInches,
@@ -21,6 +21,7 @@ class DeviceInfo {
     this.deviceKeyboard = DeviceKeyboard.none,
     this.deviceFrame = DeviceFrame.none,
     this.allowedOrientations = _allDeviceOrientations,
+    this.isResizable = false,
   });
 
   /// Name must be unique
@@ -33,6 +34,7 @@ class DeviceInfo {
   final Set<DeviceOrientation> allowedOrientations;
   final DeviceFrame deviceFrame;
   final DeviceKeyboard deviceKeyboard;
+  final bool isResizable;
 
   Size get phyiscalPixelsScreenSize => screenSize * devicePixelRatio;
 
@@ -42,4 +44,20 @@ class DeviceInfo {
 
   @override
   int get hashCode => name.hashCode;
+
+  static const DeviceInfo none = DeviceInfo(
+    name: 'none',
+    platform: TargetPlatform.windows,
+    devicePixelRatio: 2.0,
+    screenDiagonalInches: 0.0,
+    screenSize: Size.square(300.0),
+    isResizable: true,
+    viewPaddings: {
+      DeviceOrientation.landscapeLeft: EdgeInsets.zero,
+      DeviceOrientation.landscapeRight: EdgeInsets.zero,
+      DeviceOrientation.portraitUp: EdgeInsets.zero,
+      DeviceOrientation.portraitDown: EdgeInsets.zero,
+    },
+    allowedOrientations: {DeviceOrientation.portraitUp},
+  );
 }

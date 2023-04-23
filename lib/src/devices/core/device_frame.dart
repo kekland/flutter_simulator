@@ -118,12 +118,12 @@ Offset _noneScreenOffsetTransformer(
   Size screenSize,
   SimulatorParams params,
 ) {
-  return Offset.zero;
+  return const Offset(2, 2);
 }
 
 Size _noneSizeTransformer(
   Size size,
   SimulatorParams params,
 ) {
-  return size;
+  return Size(size.width + 4, size.height + 4);
 }

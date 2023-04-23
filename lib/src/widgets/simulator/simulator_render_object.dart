@@ -40,15 +40,12 @@ class SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
 
   SimulatorParams _params;
   set params(SimulatorParams value) {
-    if (_params == value) {
-      return;
-    }
-
     _params = value;
     markNeedsLayout();
   }
 
   late Size _screenSize;
+  late Size _orientedScreenSize;
   late Offset _screenOffset;
   late Rect _frameRect;
 
@@ -89,7 +86,10 @@ class SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
   void performLayout() {
     final frame = _params.deviceFrame;
 
-    _screenSize = _params.deviceInfo.screenSize;
+    _screenSize = _params.deviceScreenSize;
+    _orientedScreenSize = _params.deviceScreenOrientation.transformSize(
+      _screenSize,
+    );
 
     _frameSize = _params.deviceInfo.deviceFrame.transformSize(
       _screenSize,
@@ -156,16 +156,19 @@ class SimulatorRenderObject extends RenderBox with RenderObjectWithChildMixin {
     _screenForegroundLayerHandle.layer?.picture = picture;
   }
 
-  ui.Picture _paintContentAwareDeviceScreenForeground() {
+  ui.Picture? _paintContentAwareDeviceScreenForeground() {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
-    _params.deviceFrame.paintContentAwareDeviceScreenForeground?.call(
-      canvas,
-      _params.deviceScreenOrientation.transformSize(_screenSize),
-      _params,
-      SimulatorWidgetsBinding.instance.screenByteData,
-    );
+    if (SimulatorWidgetsBinding.instance.screenByteDataSize ==
+        _orientedScreenSize) {
+      _params.deviceFrame.paintContentAwareDeviceScreenForeground?.call(
+        canvas,
+        _params.deviceScreenOrientation.transformSize(_screenSize),
+        _params,
+        SimulatorWidgetsBinding.instance.screenByteData,
+      );
+    }
 
     return recorder.endRecording();
   }

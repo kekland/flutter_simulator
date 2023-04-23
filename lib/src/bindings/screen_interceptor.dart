@@ -4,6 +4,7 @@ import 'package:flutter_simulator/src/imports.dart';
 
 mixin ScreenInterceptor on WidgetsFlutterBinding {
   ByteData? screenByteData;
+  Size? screenByteDataSize;
 
   void initScreenInterceptor() {
     final binding = this as SimulatorWidgetsBinding;
@@ -15,6 +16,11 @@ mixin ScreenInterceptor on WidgetsFlutterBinding {
         if (byteData == null) return;
 
         screenByteData = byteData;
+        screenByteDataSize = Size(
+          image.width.toDouble(),
+          image.height.toDouble(),
+        );
+
         image.dispose();
       });
     });

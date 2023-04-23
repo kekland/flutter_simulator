@@ -196,6 +196,24 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
     );
   }
 
+  void _maybeResizeDevice(BuildContext context, Size newSize) {
+    // final deviceInfo = params.deviceInfo;
+    // final deviceScreenOrientation = params.deviceScreenOrientation;
+
+    // final newDeviceInfo = deviceInfo.copyWith(
+    //   deviceScreenOrientation: deviceScreenOrientation,
+    //   deviceScreenSize: newSize,
+    // );
+
+    // final newParams = params.copyWith(
+    //   deviceInfo: newDeviceInfo,
+    // );
+
+    // if (newParams != params) {
+    //   context.read<SimulatorParamsNotifier>().value = newParams;
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FittedBox(

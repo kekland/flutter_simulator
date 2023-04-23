@@ -92,14 +92,71 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
   }
 
   Future<void> _tryResizeView(SimulatorParams newParams) async {
-    return _windowSizeManager.setDeviceFrameSize(
-      newParams.rawDeviceScreenOrientation.transformSize(
-        newParams.deviceFrame.transformSize(
-          newParams.deviceInfo.screenSize,
-          newParams,
-        ),
-      ),
+    return _windowSizeManager.resizeWithSimulatorParams(
+      newParams,
       vsync: this,
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, SimulatorParams params) {
+    final header = SimulatorHeaderWidget(
+      params: params,
+      onChanged: (params) {
+        this.params = params;
+      },
+      onScreenshot: () async {
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        takeScreenshot(
+          context,
+          deviceInfo: params.deviceInfo,
+          key: _appRepaintBoundaryKey,
+        );
+      },
+      onScreenshotDeviceFrame: () async {
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        takeScreenshot(
+          context,
+          deviceInfo: params.deviceInfo,
+          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
+        );
+      },
+      onScreenshotDeviceScreen: () async {
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        takeScreenshot(
+          context,
+          deviceInfo: params.deviceInfo,
+          key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+        );
+      },
+    );
+
+    return ValueListenableBuilder(
+      valueListenable: _windowSizeManager.windowSizeNotifier,
+      builder: (context, size, child) {
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          width: size.width,
+          height: SimulatorHeaderWidget.preferredHeight,
+          child: child,
+        );
+      },
+      child: header,
+    );
+  }
+
+  Widget _buildSimulator(BuildContext context, SimulatorParams params) {
+    return AnimatedSimulatorParams(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      data: params,
+      builder: (context, params) => SimulatorWidget(
+        params: params,
+        appChild: widget.appChild,
+      ),
     );
   }
 
@@ -122,66 +179,15 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
           backgroundColor: Colors.transparent,
           body: RepaintBoundary(
             key: _appRepaintBoundaryKey,
-            child: Builder(
-              builder: (context) => Column(
+            child: ResizableSimulatorHandler(
+              params: _params,
+              builder: (context, params) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ValueListenableBuilder(
-                    valueListenable: _windowSizeManager.windowSizeNotifier,
-                    builder: (context, size, child) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: size.width,
-                        height: SimulatorHeaderWidget.preferredHeight,
-                        child: child,
-                      );
-                    },
-                    child: SimulatorHeaderWidget(
-                      params: _params,
-                      onChanged: (params) {
-                        this.params = params;
-                      },
-                      onScreenshot: () async {
-                        await Future.delayed(const Duration(milliseconds: 300));
-
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: _appRepaintBoundaryKey,
-                        );
-                      },
-                      onScreenshotDeviceFrame: () async {
-                        await Future.delayed(const Duration(milliseconds: 300));
-
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
-                        );
-                      },
-                      onScreenshotDeviceScreen: () async {
-                        await Future.delayed(const Duration(milliseconds: 300));
-
-                        takeScreenshot(
-                          context,
-                          deviceInfo: _params.deviceInfo,
-                          key: SimulatorWidgetsBinding.instance.deviceScreenKey,
-                        );
-                      },
-                    ),
-                  ),
+                  _buildHeader(context, params),
                   const SizedBox(height: 16.0),
                   Expanded(
-                    child: AnimatedSimulatorParams(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      data: _params,
-                      builder: (context, params) => SimulatorWidget(
-                        params: params,
-                        appChild: widget.appChild,
-                      ),
-                    ),
+                    child: _buildSimulator(context, params),
                   ),
                 ],
               ),
@@ -189,6 +195,42 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
           ),
         ),
       ),
+    );
+  }
+}
+
+class ResizableSimulatorHandler extends StatelessWidget {
+  const ResizableSimulatorHandler({
+    super.key,
+    required this.params,
+    required this.builder,
+  });
+
+  final SimulatorParams params;
+  final Widget Function(BuildContext context, SimulatorParams params) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!params.deviceInfo.isResizable) {
+          return builder(context, params.copyWithoutOverrides());
+        }
+
+        final maxSize = constraints.biggest;
+        final deviceScreenSize = Size(
+          maxSize.width - 4.0,
+          maxSize.height - SimulatorHeaderWidget.preferredHeight - 16.0 - 4.0,
+        );
+
+        return builder(
+          context,
+          params.copyWith(
+            deviceScreenSizeOverride: deviceScreenSize,
+            deviceOrientationRadOverride: 0.0,
+          ),
+        );
+      },
     );
   }
 }

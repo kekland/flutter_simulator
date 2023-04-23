@@ -26,7 +26,8 @@ class WindowSizeManager with WindowListener {
     windowManager.addListener(this);
   }
 
-  Size? _lastDeviceFrameSize;
+  Size? _lastSize;
+  SimulatorParams? _lastSimulatorParams;
 
   static double get minWidth => 320.0;
   static double get headerHeight =>
@@ -44,14 +45,27 @@ class WindowSizeManager with WindowListener {
   }
 
   var _isTransitioning = false;
-  Future<void> setDeviceFrameSize(
-    Size size, {
+  Future<void> resizeWithSimulatorParams(
+    SimulatorParams params, {
     required TickerProvider vsync,
   }) async {
+    final size = params.rawDeviceScreenOrientation.transformSize(
+      params.deviceFrame.transformSize(
+        params.deviceScreenSize,
+        params,
+      ),
+    );
+
+    final hasFixedAspectRatio = !params.deviceInfo.isResizable;
+
+    if (_lastSimulatorParams?.rawDeviceScreenOrientation ==
+            params.rawDeviceScreenOrientation &&
+        _lastSize == size) return;
+
     await windowManager.setMaximumSize(const Size(-1, -1));
 
-    if (_lastDeviceFrameSize == size) return;
-    final willAnimate = _lastDeviceFrameSize != null;
+    final willAnimate = _lastSize != null &&
+        _lastSimulatorParams?.deviceInfo.isResizable == false;
 
     final windowSize = await windowManager.getSize();
 
@@ -64,8 +78,9 @@ class WindowSizeManager with WindowListener {
 
     double scale;
 
-    if (_lastDeviceFrameSize != null) {
-      scale = windowSize.width / _lastDeviceFrameSize!.width;
+    if (_lastSize != null &&
+        _lastSimulatorParams!.deviceInfo.isResizable == false) {
+      scale = windowSize.width / _lastSize!.width;
     } else {
       scale = 1.0;
     }
@@ -77,7 +92,16 @@ class WindowSizeManager with WindowListener {
     final newWindowSize = _inflateSizeWithHeader(size * scale);
 
     windowSizeNotifier.value = newWindowSize;
-    _lastDeviceFrameSize = size;
+
+    _lastSimulatorParams = params;
+    _lastSize = size;
+    if (!hasFixedAspectRatio) {
+      await windowManager.setMinimumSize(minSize.rounded);
+      await windowManager.setAspectRatio(0.0);
+      windowSizeNotifier.value = windowSize;
+      return;
+    }
+
     if (willAnimate) {
       _isTransitioning = true;
       await windowManager.setTitleBarHeight(0.0);
