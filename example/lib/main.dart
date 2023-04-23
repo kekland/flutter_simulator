@@ -18,10 +18,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
   }
 
   @override
@@ -53,8 +53,8 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       useInheritedMediaQuery: true,
+      color: Colors.blue,
       scrollBehavior: FlutterSimulatorScrollBehavior(),
-      shortcuts: FlutterSimulatorShortcuts.shortcuts,
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
@@ -118,7 +118,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: SizedBox(
                 width: double.infinity,
                 height: 128.0,
-                child: TextField(),
+                child: TextField(
+                  maxLines: 3,
+                ),
               ),
             );
           }

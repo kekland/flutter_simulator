@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_simulator/src/devices/core/device_keyboard.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'dart:ui' as ui;
 
@@ -33,6 +34,7 @@ final iPhone14 = DeviceInfo(
     DeviceOrientation.landscapeRight,
   },
   deviceFrame: _iPhone14Frame,
+  deviceKeyboard: _keyboard,
 );
 
 const _iPhone14Frame = DeviceFrame(
@@ -55,7 +57,8 @@ const _totalBorderWidth = _borderWidth + _outerBorderWidth;
 
 const _borderColor = Color(0xFF010101);
 const _outerBorderColor = Color(0xFF2C2C2C);
-final _outer2BorderColor = Colors.black.withOpacity(0.15);
+const _outer2BorderColor = Color(0xFF7E7E7E);
+final _outer3BorderColor = Colors.black.withOpacity(0.15);
 final _buttonOuterColor = Colors.black.withOpacity(0.15);
 const _buttonColor = Color(0xFF2B2B2B);
 
@@ -85,7 +88,7 @@ void _paintPhysicalDeviceFrame(
     Size buttonSize,
     bool isLeft,
   ) {
-    final shadowPaint = Paint()..color = Colors.black.withOpacity(0.15);
+    final shadowPaint = Paint()..color = _outer3BorderColor;
     final outerPaint = Paint()..color = _buttonOuterColor;
     final paint = Paint()..color = _buttonColor;
 
@@ -150,7 +153,7 @@ void _paintPhysicalDeviceFrame(
 
   paintBorder(
     _outerBorderWidth + _borderWidth + 2.0,
-    Colors.black.withOpacity(0.15),
+    _outer3BorderColor,
   );
 
   paintBorder(
@@ -456,4 +459,377 @@ void _paintContentAwareDeviceScreenForeground(
     Paint()..shader = shader,
     // Paint()..color = baseColor,
   );
+}
+
+const _keyboard = DeviceKeyboard(
+  builder: _buildKeyboard,
+  computeViewInsets: _computeViewInsets,
+);
+
+EdgeInsets _computeViewInsets(
+  BuildContext context,
+  SimulatorParams params,
+  SimulatedIME? ime,
+) {
+  return const EdgeInsets.only(bottom: _keyboardHeight);
+}
+
+const _keyboardHeight = 336.0;
+const _keyRadius = Radius.circular(5.0);
+const _keyColor = Color(0xFFFDFDFE);
+const _specialKeyColor = Color(0xFFB3BAC3);
+const _keyShadowColor = Color(0xFF888A8D);
+
+const _suggestionsForegroundColor = Color(0xFF141515);
+const _suggestionsDividerColor = Color(0xFFBDBFC3);
+const _trailingForegroundColor = Color(0xFF51555B);
+
+const _keyboardBackgroundColor = Color(0xFFD1D4D9);
+PreferredSizeWidget _buildKeyboard(
+  BuildContext context,
+  SimulatorParams params,
+  SimulatedIME? ime,
+) {
+  return PreferredSize(
+    preferredSize: Size(
+      params.orientedScreenSize.width,
+      _keyboardHeight,
+    ),
+    child: DefaultTextStyle(
+      style: TextStyle(
+        fontFamily: 'SF Pro',
+        color: _suggestionsForegroundColor,
+      ),
+      child: Container(
+        width: double.infinity,
+        height: _keyboardHeight,
+        color: _keyboardBackgroundColor,
+        child: Column(
+          children: [
+            _IOSKeyboardSuggestionsRowWidget(),
+            const SizedBox(height: 2.0),
+            _IOSEnglishKeyboardWidget(),
+            _IOSKeyboardTrailingWidget(),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _IOSKeyboardSuggestionsRowWidget extends StatelessWidget
+    with PreferredSizeWidget {
+  const _IOSKeyboardSuggestionsRowWidget();
+
+  Widget _buildDivider(BuildContext context) {
+    return Container(
+      width: 1.0,
+      height: 25.0,
+      color: _suggestionsDividerColor,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.fromSize(
+      size: preferredSize,
+      child: Row(
+        children: [
+          Expanded(
+            child: Center(child: Text('sup')),
+          ),
+          _buildDivider(context),
+          Expanded(
+            child: Center(child: Text('sup')),
+          ),
+          _buildDivider(context),
+          Expanded(
+            child: Center(child: Text('sup')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(51);
+}
+
+class _IOSKeyboardTrailingWidget extends StatelessWidget
+    with PreferredSizeWidget {
+  const _IOSKeyboardTrailingWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.fromSize(
+      size: preferredSize,
+      child: Row(
+        children: [
+          SizedBox.square(
+            dimension: preferredSize.height,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {},
+              child: const Icon(
+                CupertinoIcons.globe,
+                color: _trailingForegroundColor,
+                size: 27.0,
+              ),
+            ),
+          ),
+          const Spacer(),
+          SizedBox.square(
+            dimension: preferredSize.height,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {},
+              child: const Icon(
+                CupertinoIcons.mic,
+                color: _trailingForegroundColor,
+                size: 27.0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(78);
+}
+
+class _IOSEnglishKeyboardWidget extends StatelessWidget
+    with PreferredSizeWidget {
+  const _IOSEnglishKeyboardWidget();
+
+  void _onCharacterTap(String character) {
+    final eventData = RawKeyEventDataIos(
+      characters: character,
+      charactersIgnoringModifiers: character,
+      keyCode: 0,
+      modifiers: 0,
+    );
+
+    SystemTextInputChannelInterceptor.instance.activeIME.handleKeyEvent(
+      RawKeyDownEvent(
+        data: eventData,
+        character: character,
+        repeat: false,
+      ),
+    );
+
+    SystemTextInputChannelInterceptor.instance.activeIME.handleKeyEvent(
+      RawKeyUpEvent(
+        data: eventData,
+        character: character,
+      ),
+    );
+  }
+
+  Widget _buildGap(BuildContext context) {
+    return const SizedBox(width: 6.0);
+  }
+
+  Widget _buildKeyRow(
+    BuildContext context, {
+    required EdgeInsets padding,
+    required List<String> characters,
+    List<Widget> leading = const [],
+    List<Widget> trailing = const [],
+  }) {
+    return Padding(
+      padding: padding,
+      child: Row(
+        children: [
+          ...leading,
+          if (characters.isNotEmpty) const Spacer(),
+          ...characters
+              .map<Widget>(
+                (v) => _IOSKeyboardKeyWidget.character(
+                  v,
+                  onTap: () => _onCharacterTap(v),
+                ),
+              )
+              .intersperse(_buildGap(context))
+              .toList(),
+          if (characters.isNotEmpty) const Spacer(),
+          ...trailing,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.fromSize(
+      size: preferredSize,
+      child: Column(
+        children: [
+          _buildKeyRow(
+            context,
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            characters: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+          ),
+          const SizedBox(height: 11.0),
+          _buildKeyRow(
+            context,
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            characters: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+          ),
+          const SizedBox(height: 11.0),
+          _buildKeyRow(
+            context,
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            characters: ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
+            leading: [
+              _IOSKeyboardKeyWidget(
+                size: const Size(44, 43),
+                foregroundColor: _specialKeyColor,
+                onTap: () {},
+                child: const Icon(
+                  CupertinoIcons.shift,
+                  size: 20.0,
+                ),
+              ),
+            ],
+            trailing: [
+              _IOSKeyboardKeyWidget(
+                size: const Size(44, 43),
+                foregroundColor: _specialKeyColor,
+                onTap: () {
+                  SystemTextInputChannelInterceptor.instance.activeIME
+                      .handleBackspacePress();
+                },
+                child: const Icon(
+                  CupertinoIcons.delete_left,
+                  size: 20.0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 11.0),
+          _buildKeyRow(
+            context,
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            characters: [],
+            leading: [
+              const _IOSKeyboardKeyWidget(
+                size: Size(42, 43),
+                foregroundColor: _specialKeyColor,
+                child: Icon(
+                  CupertinoIcons.textformat_123,
+                  size: 20.0,
+                ),
+              ),
+              _buildGap(context),
+              const _IOSKeyboardKeyWidget(
+                size: Size(42, 43),
+                foregroundColor: _specialKeyColor,
+                // TODO: Insert the proper icon here
+                child: Icon(
+                  CupertinoIcons.smiley,
+                  size: 20.0,
+                ),
+              ),
+              _buildGap(context),
+              Expanded(
+                child: _IOSKeyboardKeyWidget(
+                  onTap: () {
+                    _onCharacterTap(' ');
+                  },
+                  child: const Text(
+                    'space',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+              _buildGap(context),
+            ],
+            trailing: [
+              _IOSKeyboardKeyWidget(
+                size: const Size(91, 43),
+                foregroundColor: _specialKeyColor,
+                onTap: () {
+                  SystemTextInputChannelInterceptor.instance.activeIME
+                      .handleNewlinePress();
+                },
+                child: const Text(
+                  'return',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(205);
+}
+
+const _keySize = Size.fromHeight(43);
+const _characterKeySize = Size(33, 43);
+
+class _IOSKeyboardKeyWidget extends StatelessWidget {
+  const _IOSKeyboardKeyWidget({
+    required this.child,
+    this.onTap,
+    this.foregroundColor,
+    this.size = _keySize,
+  });
+
+  _IOSKeyboardKeyWidget.character(
+    String character, {
+    this.onTap,
+    this.size = _characterKeySize,
+    this.foregroundColor,
+  }) : child = Transform.translate(
+          offset: const Offset(0, -1),
+          child: Text(character),
+        );
+
+  final Size size;
+  final Widget child;
+  final Color? foregroundColor;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox.fromSize(
+          size: size,
+          child: Container(
+            height: size.height,
+            alignment: Alignment.topLeft,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(_keyRadius),
+              color: _keyShadowColor,
+            ),
+            child: Container(
+              height: size.height - 1,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(_keyRadius),
+                color: foregroundColor ?? _keyColor,
+              ),
+              child: Center(
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    height: 1.0,
+                  ),
+                  child: child,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

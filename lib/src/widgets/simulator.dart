@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_simulator/src/imports.dart';
@@ -53,22 +55,105 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
 
   Brightness get simulatorBrightness => params.simulatorBrightness;
 
+  PreferredSizeWidget _buildKeyboard(BuildContext context) {
+    final keyboard = params.deviceInfo.deviceKeyboard;
+    return keyboard.builder(
+      context,
+      params,
+      SystemTextInputChannelInterceptor.instance.maybeActiveIME,
+    );
+  }
+
+  Widget _buildKeyboardWithAnimation(BuildContext context) {
+    final keyboard = params.deviceInfo.deviceKeyboard;
+    return ValueListenableBuilder(
+      valueListenable:
+          SystemTextInputChannelInterceptor.instance.keyboardVisibilityNotifier,
+      builder: (context, isVisible, child) {
+        final keyboardChild = child as PreferredSizeWidget;
+
+        return keyboard.animationBuilder(
+          context,
+          params.orientedScreenSize,
+          params,
+          isVisible,
+          keyboardChild,
+        );
+      },
+      child: _buildKeyboard(context),
+    );
+  }
+
   /// Builds the app widget.
   ///
   /// This is wrapped in a [RepaintBoundary] to prevent the simulator stuff
   /// from being repainted when the stuff in the app is repainted.
-  ///
-  /// This also wraps the app with appropriate [MediaQuery] data, as well as
-  /// sizing it to the size of the device.
   Widget _buildAppWidget(BuildContext context) {
-    final size = params.screenSize;
-
-    final mediaQueryData = _mediaQueryData.copyWith(
-      size: size,
-      viewPadding: params.viewPadding,
-      padding: params.viewPadding,
-      platformBrightness: simulatorBrightness,
+    return RepaintBoundary(
+      key: deviceContentAwareScreenForegroundKey,
+      child: RepaintBoundary(
+        key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+        child: Stack(
+          children: [
+            widget.appChild,
+            _buildKeyboardWithAnimation(context),
+          ],
+        ),
+      ),
     );
+  }
+
+  /// This wraps the app with appropriate [MediaQuery] data.
+  Widget _buildMediaQuery(BuildContext context) {
+    final size = params.orientedScreenSize;
+
+    final keyboard = params.deviceInfo.deviceKeyboard;
+
+    return ValueListenableBuilder(
+      valueListenable:
+          SystemTextInputChannelInterceptor.instance.keyboardVisibilityNotifier,
+      builder: (context, isKeyboardVisible, child) {
+        return AnimatedViewInsets(
+          duration: keyboard.keyboardRevealAnimationDuration,
+          curve: keyboard.keyboardRevealAnimationCurve,
+          viewInsets: isKeyboardVisible
+              ? keyboard.computeViewInsets(
+                  context,
+                  params,
+                  SystemTextInputChannelInterceptor.instance.maybeActiveIME,
+                )
+              : EdgeInsets.zero,
+          builder: (context, viewInsets) {
+            final viewPadding = params.viewPadding;
+
+            final padding = EdgeInsets.only(
+              left: max(viewPadding.left, viewInsets.left),
+              top: max(viewPadding.top, viewInsets.top),
+              right: max(viewPadding.right, viewInsets.right),
+              bottom: max(viewPadding.bottom, viewInsets.bottom),
+            );
+
+            final mediaQueryData = _mediaQueryData.copyWith(
+              size: size,
+              viewPadding: viewPadding,
+              viewInsets: viewInsets,
+              padding: padding,
+              platformBrightness: simulatorBrightness,
+            );
+
+            return MediaQuery(
+              data: mediaQueryData,
+              child: child!,
+            );
+          },
+        );
+      },
+      child: _buildAppWidget(context),
+    );
+  }
+
+  Widget _buildResizableArea(BuildContext context) {
+    final size = params.orientedScreenSize;
 
     return SizedBox.fromSize(
       size: size,
@@ -78,16 +163,7 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onPanStart: (_) {},
-          child: MediaQuery(
-            data: mediaQueryData,
-            child: RepaintBoundary(
-              key: deviceContentAwareScreenForegroundKey,
-              child: RepaintBoundary(
-                key: SimulatorWidgetsBinding.instance.deviceScreenKey,
-                child: widget.appChild,
-              ),
-            ),
-          ),
+          child: _buildMediaQuery(context),
         ),
       ),
     );
@@ -104,8 +180,8 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
           key: SimulatorWidgetsBinding.instance.deviceFrameKey,
           child: SimulatorRenderObjectWidget(
             key: const Key('simulator-render-object'),
-            params: widget.params,
-            child: _buildAppWidget(context),
+            params: params,
+            child: _buildResizableArea(context),
           ),
         ),
       ),

@@ -19,6 +19,7 @@ class SimulatedIME {
   Matrix4? transform;
 
   Rect? markedTextRect;
+  List<Rect> selectionRects = [];
   Rect? caretRect;
 
   String? fontFamily;
@@ -39,6 +40,10 @@ class SimulatedIME {
 
   void setMarkedTextRect(Rect rect) {
     markedTextRect = rect;
+  }
+
+  void setSelectionRects(List<Rect> rects) {
+    selectionRects = rects;
   }
 
   void setStyle(
@@ -94,6 +99,16 @@ class SimulatedIME {
     );
   }
 
+  void handleBackspacePress() {
+    _deleteCharacter(-1);
+    SystemTextInputChannelInterceptor.instance.updateEditingState(id, value);
+  }
+
+  void handleNewlinePress() {
+    _appendCharacter('\n');
+    SystemTextInputChannelInterceptor.instance.updateEditingState(id, value);
+  }
+
   void handleKeyEvent(RawKeyEvent event) {
     final interceptor = SystemTextInputChannelInterceptor.instance;
     print(event);
@@ -104,8 +119,7 @@ class SimulatedIME {
         _appendCharacter(event.character!);
         interceptor.updateEditingState(id, value);
       } else if (event.logicalKey == LogicalKeyboardKey.backspace) {
-        _deleteCharacter(-1);
-        interceptor.updateEditingState(id, value);
+        handleBackspacePress();
       } else if (event.logicalKey == LogicalKeyboardKey.delete) {
         _deleteCharacter(1);
         interceptor.updateEditingState(id, value);

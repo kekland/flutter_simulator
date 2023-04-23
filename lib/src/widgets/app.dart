@@ -28,6 +28,7 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     previousScreenOrientation: DeviceOrientation.portraitUp,
     simulatorBrightness: Brightness.light,
     systemUiOverlayStyle: SystemUiOverlayStyle.light,
+    isKeyboardVisible: false,
   );
 
   set params(SimulatorParams params) {
@@ -49,7 +50,8 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     final platformChannelInterceptor =
         SystemPlatformChannelInterceptor.ensureInitialized();
 
-    SystemTextInputChannelInterceptor.ensureInitialized();
+    final textInputChannelInterceptor =
+        SystemTextInputChannelInterceptor.ensureInitialized();
 
     platformChannelInterceptor.addListener(() {
       params = _params.copyWith(
@@ -58,6 +60,13 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
             platformChannelInterceptor.applicationSwitcherDescription,
         appPreferredOrientations:
             platformChannelInterceptor.appPreferredOrientations,
+      );
+    });
+
+    textInputChannelInterceptor.keyboardVisibilityNotifier.addListener(() {
+      params = _params.copyWith(
+        isKeyboardVisible:
+            textInputChannelInterceptor.keyboardVisibilityNotifier.value,
       );
     });
 

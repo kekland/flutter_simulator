@@ -13,6 +13,7 @@ class SimulatorParams {
     required this.previousScreenOrientation,
     required this.simulatorBrightness,
     required this.systemUiOverlayStyle,
+    required this.isKeyboardVisible,
     this.applicationSwitcherDescription,
     this.appPreferredOrientations,
   });
@@ -37,6 +38,9 @@ class SimulatorParams {
 
   /// Intercepted [Set<DeviceOrientation>] from the app
   final Set<DeviceOrientation>? appPreferredOrientations;
+
+  /// Whether the keyboard is shown
+  final bool isKeyboardVisible;
 
   /// Returns the preferred (raw) screen orientation based on the
   /// [deviceOrientationRad]
@@ -79,7 +83,7 @@ class SimulatorParams {
 
   DeviceFrame get deviceFrame => deviceInfo.deviceFrame;
 
-  Size get screenSize =>
+  Size get orientedScreenSize =>
       deviceScreenOrientation.transformSize(deviceInfo.screenSize);
 
   EdgeInsets get viewPadding =>
@@ -92,6 +96,7 @@ class SimulatorParams {
     SystemUiOverlayStyle? systemUiOverlayStyle,
     ApplicationSwitcherDescription? applicationSwitcherDescription,
     List<DeviceOrientation>? appPreferredOrientations,
+    bool? isKeyboardVisible,
   }) {
     return SimulatorParams(
       deviceInfo: deviceInfo ?? this.deviceInfo,
@@ -103,6 +108,7 @@ class SimulatorParams {
       appPreferredOrientations:
           appPreferredOrientations?.toSet() ?? this.appPreferredOrientations,
       previousScreenOrientation: deviceScreenOrientation,
+      isKeyboardVisible: isKeyboardVisible ?? this.isKeyboardVisible,
     );
   }
 
@@ -135,6 +141,7 @@ class SimulatorParams {
       applicationSwitcherDescription: t == 0.0
           ? a!.applicationSwitcherDescription
           : b!.applicationSwitcherDescription,
+      isKeyboardVisible: t == 0.0 ? a!.isKeyboardVisible : b!.isKeyboardVisible,
     );
   }
 }

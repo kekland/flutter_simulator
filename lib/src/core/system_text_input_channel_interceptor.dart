@@ -1,14 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 
 class SystemTextInputChannelInterceptor {
   int? _activeIMEId;
   final Map<int, SimulatedIME> _simulatedIMEs = {};
 
-  SimulatedIME? get _maybeActiveIME => _activeIMEId != null ? _activeIME : null;
-  SimulatedIME get _activeIME => _simulatedIMEs[_activeIMEId]!;
+  SimulatedIME? get maybeActiveIME => _activeIMEId != null ? activeIME : null;
+  SimulatedIME get activeIME => _simulatedIMEs[_activeIMEId]!;
+
+  final keyboardVisibilityNotifier = ValueNotifier(false);
 
   static SystemTextInputChannelInterceptor ensureInitialized() {
     if (SystemTextInputChannelInterceptor._instance != null) {
@@ -32,7 +35,7 @@ class SystemTextInputChannelInterceptor {
   static SystemTextInputChannelInterceptor? _instance;
 
   void _onKeyboardEvent(RawKeyEvent event) {
-    _maybeActiveIME?.handleKeyEvent(event);
+    maybeActiveIME?.handleKeyEvent(event);
   }
 
   Future<Object?>? _handleMessage(MethodCall message) async {
@@ -44,6 +47,8 @@ class SystemTextInputChannelInterceptor {
       return _onSetEditableSizeAndTransform(message.arguments);
     } else if (message.method == 'TextInput.setMarkedTextRect') {
       return _onSetMarkedTextRect(message.arguments);
+    } else if (message.method == 'TextInput.setSelectionRects') {
+      return _onSetSelectionRects(message.arguments);
     } else if (message.method == 'TextInput.setStyle') {
       return _onSetStyle(message.arguments);
     } else if (message.method == 'TextInput.setEditingState') {
@@ -84,7 +89,7 @@ class SystemTextInputChannelInterceptor {
       arguments['transform'].cast<double>().toList(),
     );
 
-    _activeIME.setEditableSizeAndTransform(width, height, transform);
+    activeIME.setEditableSizeAndTransform(width, height, transform);
     return null;
   }
 
@@ -95,8 +100,22 @@ class SystemTextInputChannelInterceptor {
     final y = arguments['y'] as double;
 
     final rect = Rect.fromLTWH(x, y, width, height);
-    _activeIME.setMarkedTextRect(rect);
+    activeIME.setMarkedTextRect(rect);
 
+    return null;
+  }
+
+  Future<Object?> _onSetSelectionRects(dynamic arguments) async {
+    final rects = (arguments as List<dynamic>)
+        .map((rect) => Rect.fromLTWH(
+              rect[0] as double,
+              rect[1] as double,
+              rect[2] as double,
+              rect[3] as double,
+            ))
+        .toList();
+
+    activeIME.setSelectionRects(rects);
     return null;
   }
 
@@ -113,7 +132,7 @@ class SystemTextInputChannelInterceptor {
     final textDirectionIndex = arguments['textDirectionIndex'] as int;
     final textDirection = TextDirection.values[textDirectionIndex];
 
-    _activeIME.setStyle(
+    activeIME.setStyle(
       fontFamily,
       fontSize,
       fontWeight,
@@ -126,13 +145,13 @@ class SystemTextInputChannelInterceptor {
 
   Future<Object?> _onSetEditingState(dynamic arguments) async {
     final textEditingValue = TextEditingValue.fromJSON(arguments);
-    _activeIME.setEditingState(textEditingValue);
+    activeIME.setEditingState(textEditingValue);
 
     return null;
   }
 
   Future<Object?> _onShow() async {
-    // TODO: Show IME on screen
+    keyboardVisibilityNotifier.value = true;
     return null;
   }
 
@@ -148,7 +167,7 @@ class SystemTextInputChannelInterceptor {
     final y = arguments['y'] as double;
 
     final rect = Rect.fromLTWH(x, y, width, height);
-    _activeIME.setCaretRect(rect);
+    activeIME.setCaretRect(rect);
 
     return null;
   }
@@ -160,7 +179,7 @@ class SystemTextInputChannelInterceptor {
   }
 
   Future<Object?> _onHide() async {
-    // TODO: Hide IME from screen
+    keyboardVisibilityNotifier.value = false;
     return null;
   }
 
