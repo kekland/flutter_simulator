@@ -376,11 +376,9 @@ class SystemTextInputChannelInterceptor {
       bytes,
       (bytes) {
         if (bytes == null) {
-          print('Result for ${methodCall.method}: null');
           completer.complete(null);
         }
         final response = SystemChannels.textInput.codec.decodeEnvelope(bytes!);
-        print('Result for ${methodCall.method}: $response');
         completer.complete(response);
       },
     );

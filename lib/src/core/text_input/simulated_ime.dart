@@ -111,7 +111,6 @@ class SimulatedIME {
 
   void handleKeyEvent(RawKeyEvent event) {
     final interceptor = SystemTextInputChannelInterceptor.instance;
-    print(event);
 
     // TODO: Make this work for macOS
     if (event is RawKeyDownEvent) {

@@ -12,6 +12,9 @@ import 'package:matrix4_transform/matrix4_transform.dart';
 /// items such as the home indicator on iPhone X.
 final deviceContentAwareScreenForegroundKey = GlobalKey();
 
+// TODO: Separate this into two render objects: one for the frame and one for
+// the actual screen. This is needed so that the screen capture will include
+// the foreground screen elements.
 class SimulatorRenderObjectWidget extends SingleChildRenderObjectWidget {
   const SimulatorRenderObjectWidget({
     super.key,
