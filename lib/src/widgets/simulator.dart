@@ -29,9 +29,17 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
   /// simulated app.
   late MediaQueryData _mediaQueryData;
 
+  /// The [FocusScopeNode] of the app.
+  late final FocusScopeNode _appFocusScopeNode;
+
   @override
   void initState() {
     super.initState();
+
+    _appFocusScopeNode = FocusScopeNode(
+      skipTraversal: true,
+      canRequestFocus: true,
+    );
 
     _mediaQueryData = MediaQueryData.fromWindow(WidgetsBinding.instance.window);
     WidgetsBinding.instance.addObserver(this);
@@ -44,6 +52,7 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
 
   @override
   void dispose() {
+    _appFocusScopeNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -64,10 +73,15 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
     }
 
     final keyboard = params.deviceInfo.deviceKeyboard;
-    return keyboard.builder(
+    final keyboardWidget = keyboard.builder(
       context,
       params,
       ime ?? _lastActiveIme,
+    );
+
+    return PreferredSize(
+      preferredSize: keyboardWidget.preferredSize,
+      child: RepaintBoundary(child: keyboardWidget),
     );
   }
 
@@ -106,7 +120,14 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
         key: SimulatorWidgetsBinding.instance.deviceScreenKey,
         child: Stack(
           children: [
-            widget.appChild,
+            ColoredBox(
+              color: Colors.black,
+              child: FocusScope.withExternalFocusNode(
+                focusScopeNode: _appFocusScopeNode,
+                parentNode: FocusManager.instance.rootScope,
+                child: widget.appChild,
+              ),
+            ),
             _buildKeyboardWithAnimation(context),
           ],
         ),
@@ -124,17 +145,12 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
       valueListenable:
           SystemTextInputChannelInterceptor.instance.keyboardVisibilityNotifier,
       builder: (context, isKeyboardVisible, child) {
-        return AnimatedViewInsets(
-          duration: keyboard.keyboardRevealAnimationDuration,
-          curve: keyboard.keyboardRevealAnimationCurve,
-          viewInsets: isKeyboardVisible
-              ? keyboard.computeViewInsets(
-                  context,
-                  params,
-                  SystemTextInputChannelInterceptor.instance.maybeActiveIME,
-                )
-              : EdgeInsets.zero,
-          builder: (context, viewInsets) {
+        return keyboard.viewInsetsBuilder(
+          context,
+          params,
+          SystemTextInputChannelInterceptor.instance.maybeActiveIME,
+          isKeyboardVisible,
+          (context, viewInsets) {
             final viewPadding = params.viewPadding;
 
             final padding = EdgeInsets.only(

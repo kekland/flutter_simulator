@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -19,7 +21,9 @@ class FlutterSimulatorApp extends StatefulWidget {
   State<FlutterSimulatorApp> createState() => _FlutterSimulatorAppState();
 }
 
-class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
+class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
+    with TickerProviderStateMixin {
+  late final FocusScopeNode _headerFocusScopeNode;
   final _windowSizeManager = WindowSizeManager();
 
   var _params = SimulatorParams(
@@ -32,6 +36,8 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
   );
 
   set params(SimulatorParams params) {
+    if (params == _params) return;
+
     _tryResizeView(params);
 
     _params = params;
@@ -70,6 +76,8 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
       );
     });
 
+    _headerFocusScopeNode = FocusScopeNode();
+
     _tryResizeView(_params);
   }
 
@@ -78,6 +86,8 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
     SystemPlatformChannelInterceptor.instance.dispose();
     SystemTextInputChannelInterceptor.instance.dispose();
     _windowSizeManager.dispose();
+    _headerFocusScopeNode.dispose();
+
     super.dispose();
   }
 
@@ -89,81 +99,92 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp> {
           newParams,
         ),
       ),
+      vsync: this,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'simulator-app',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: _params.simulatorBrightness,
+    return FocusScope(
+      node: _headerFocusScopeNode,
+      canRequestFocus: false,
+      child: MaterialApp(
+        title: 'simulator-app',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.from(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal,
+            brightness: _params.simulatorBrightness,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      home: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: RepaintBoundary(
-          key: _appRepaintBoundaryKey,
-          child: Builder(
-            builder: (context) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: _windowSizeManager.windowSizeNotifier,
-                  builder: (context, size, child) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      width: size.width,
-                      height: SimulatorHeaderWidget.preferredHeight,
-                      child: child,
-                    );
-                  },
-                  child: SimulatorHeaderWidget(
-                    params: _params,
-                    onChanged: (params) {
-                      this.params = params;
-                    },
-                    onScreenshot: () {
-                      takeScreenshot(
-                        context,
-                        deviceInfo: _params.deviceInfo,
-                        key: _appRepaintBoundaryKey,
+        home: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: RepaintBoundary(
+            key: _appRepaintBoundaryKey,
+            child: Builder(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: _windowSizeManager.windowSizeNotifier,
+                    builder: (context, size, child) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        width: size.width,
+                        height: SimulatorHeaderWidget.preferredHeight,
+                        child: child,
                       );
                     },
-                    onScreenshotDeviceFrame: () {
-                      takeScreenshot(
-                        context,
-                        deviceInfo: _params.deviceInfo,
-                        key: SimulatorWidgetsBinding.instance.deviceFrameKey,
-                      );
-                    },
-                    onScreenshotDeviceScreen: () {
-                      takeScreenshot(
-                        context,
-                        deviceInfo: _params.deviceInfo,
-                        key: SimulatorWidgetsBinding.instance.deviceScreenKey,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Expanded(
-                  child: AnimatedSimulatorParams(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    data: _params,
-                    builder: (context, params) => SimulatorWidget(
-                      params: params,
-                      appChild: widget.appChild,
+                    child: SimulatorHeaderWidget(
+                      params: _params,
+                      onChanged: (params) {
+                        this.params = params;
+                      },
+                      onScreenshot: () async {
+                        await Future.delayed(const Duration(milliseconds: 300));
+
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: _appRepaintBoundaryKey,
+                        );
+                      },
+                      onScreenshotDeviceFrame: () async {
+                        await Future.delayed(const Duration(milliseconds: 300));
+
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: SimulatorWidgetsBinding.instance.deviceFrameKey,
+                        );
+                      },
+                      onScreenshotDeviceScreen: () async {
+                        await Future.delayed(const Duration(milliseconds: 300));
+
+                        takeScreenshot(
+                          context,
+                          deviceInfo: _params.deviceInfo,
+                          key: SimulatorWidgetsBinding.instance.deviceScreenKey,
+                        );
+                      },
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16.0),
+                  Expanded(
+                    child: AnimatedSimulatorParams(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      data: _params,
+                      builder: (context, params) => SimulatorWidget(
+                        params: params,
+                        appChild: widget.appChild,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

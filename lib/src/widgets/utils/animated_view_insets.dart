@@ -18,7 +18,7 @@ class AnimatedViewInsets extends ImplicitlyAnimatedWidget {
 }
 
 class _AnimatedViewInsetsState
-    extends ImplicitlyAnimatedWidgetState<AnimatedViewInsets> {
+    extends AnimatedWidgetBaseState<AnimatedViewInsets> {
   EdgeInsetsGeometryTween? _padding;
 
   @override

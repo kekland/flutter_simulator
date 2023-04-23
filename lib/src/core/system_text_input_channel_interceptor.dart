@@ -40,8 +40,6 @@ class SystemTextInputChannelInterceptor {
   }
 
   Future<Object?>? _handleMessage(MethodCall message) async {
-    print(message);
-
     if (message.method == 'TextInput.setClient') {
       return _onSetClient(message.arguments);
     } else if (message.method == 'TextInput.setEditableSizeAndTransform') {

@@ -7,7 +7,6 @@ Future<void> runFlutterSimulatorApp(Widget app) async {
 
   // TODO: Make this preserve the old size
   const windowOptions = WindowOptions(
-    size: Size(600, 600),
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
   );

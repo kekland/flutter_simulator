@@ -23,6 +23,7 @@ class DeviceInfo {
     this.allowedOrientations = _allDeviceOrientations,
   });
 
+  /// Name must be unique
   final String name;
   final TargetPlatform platform;
   final double screenDiagonalInches;
@@ -34,4 +35,11 @@ class DeviceInfo {
   final DeviceKeyboard deviceKeyboard;
 
   Size get phyiscalPixelsScreenSize => screenSize * devicePixelRatio;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is DeviceInfo && name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 }

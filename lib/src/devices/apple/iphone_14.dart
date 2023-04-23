@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_simulator/src/devices/apple/ios_keyboard_animation.dart';
 import 'package:flutter_simulator/src/devices/core/device_keyboard.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'dart:ui' as ui;
@@ -65,7 +66,7 @@ const _buttonColor = Color(0xFF2B2B2B);
 const _notchSize = Size(484 / 3, 101 / 3);
 
 Size _transformSize(Size screenSize, SimulatorParams params) {
-  return Size(screenSize.width + 45, screenSize.height + 38);
+  return Size(screenSize.width + 45, screenSize.height + 41);
 }
 
 Offset _transformScreenOffset(
@@ -463,15 +464,49 @@ void _paintContentAwareDeviceScreenForeground(
 
 const _keyboard = DeviceKeyboard(
   builder: _buildKeyboard,
-  computeViewInsets: _computeViewInsets,
+  viewInsetsBuilder: _buildViewInsets,
+  animationBuilder: _buildKeyboardAnimation,
 );
 
-EdgeInsets _computeViewInsets(
+Widget _buildViewInsets(
   BuildContext context,
   SimulatorParams params,
   SimulatedIME? ime,
+  bool isVisible,
+  Widget Function(BuildContext context, EdgeInsets viewInsets) builder,
 ) {
-  return const EdgeInsets.only(bottom: _keyboardHeight);
+  return IOSKeyboardAnimatedBuilder(
+    isVisible: isVisible,
+    builder: (context, value) {
+      return builder(
+        context,
+        EdgeInsets.only(bottom: _keyboardHeight * value),
+      );
+    },
+  );
+}
+
+Widget _buildKeyboardAnimation(
+  BuildContext context,
+  Size screenSize,
+  SimulatorParams params,
+  bool isVisible,
+  PreferredSizeWidget keyboardWidget,
+) {
+  return Positioned(
+    width: keyboardWidget.preferredSize.width,
+    height: keyboardWidget.preferredSize.height,
+    bottom: 0.0,
+    child: IOSKeyboardAnimatedBuilder(
+      isVisible: isVisible,
+      builder: (context, value) {
+        return Transform.translate(
+          offset: Offset(0.0, (1 - value) * keyboardWidget.preferredSize.height),
+          child: RepaintBoundary(child: keyboardWidget),
+        );
+      },
+    ),
+  );
 }
 
 const _keyboardHeight = 336.0;
@@ -573,9 +608,9 @@ PreferredSizeWidget _buildKeyboard(
             height: _keyboardHeight,
             color: _KeyboardTheme.of(context).keyboardBackgroundColor,
             child: Column(
-              children: [
+              children: const [
                 _IOSKeyboardSuggestionsRowWidget(),
-                const SizedBox(height: 2.0),
+                SizedBox(height: 2.0),
                 _IOSEnglishKeyboardWidget(),
                 _IOSKeyboardTrailingWidget(),
               ],
@@ -605,15 +640,15 @@ class _IOSKeyboardSuggestionsRowWidget extends StatelessWidget
       size: preferredSize,
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: Center(child: Text('sup')),
           ),
           _buildDivider(context),
-          Expanded(
+          const Expanded(
             child: Center(child: Text('sup')),
           ),
           _buildDivider(context),
-          Expanded(
+          const Expanded(
             child: Center(child: Text('sup')),
           ),
         ],

@@ -80,45 +80,35 @@ class SimulatorHeaderWidget extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: 8.0),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24.0),
-                  child: Material(
-                    type: MaterialType.transparency,
-                    shape: const CircleBorder(),
-                    child: PopupMenuButton(
-                      child: SizedBox(
-                        width: 48.0,
-                        height: 48.0,
-                        child: Icon(
-                          Icons.more_vert_rounded,
-                          color: foregroundColor,
-                        ),
-                      ),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          onTap: onScreenshot,
-                          child: const PopupMenuItemChild(
-                            icon: Icons.image_rounded,
-                            label: 'Take screenshot',
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: onScreenshotDeviceFrame,
-                          child: const PopupMenuItemChild(
-                            icon: Icons.phone_iphone_rounded,
-                            label: 'Capture device frame',
-                          ),
-                        ),
-                        PopupMenuItem(
-                          onTap: onScreenshotDeviceScreen,
-                          child: const PopupMenuItemChild(
-                            icon: Icons.image_rounded,
-                            label: 'Capture device screen',
-                          ),
-                        ),
-                      ],
-                    ),
+                PopupMenuButton(
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    color: foregroundColor,
                   ),
+                  padding: const EdgeInsets.all(12.0),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      onTap: onScreenshot,
+                      child: const PopupMenuItemChild(
+                        icon: Icons.image_rounded,
+                        label: 'Take screenshot',
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: onScreenshotDeviceFrame,
+                      child: const PopupMenuItemChild(
+                        icon: Icons.phone_iphone_rounded,
+                        label: 'Capture device frame',
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: onScreenshotDeviceScreen,
+                      child: const PopupMenuItemChild(
+                        icon: Icons.image_rounded,
+                        label: 'Capture device screen',
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(width: 8.0),
                 Expanded(

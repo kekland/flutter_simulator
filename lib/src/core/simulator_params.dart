@@ -5,6 +5,54 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 
+/// Set of parameters in [SimulatorParams] that should be animated.
+class _AnimatedSimulatorParams {
+  _AnimatedSimulatorParams({
+    required this.deviceOrientationRad,
+  });
+
+  _AnimatedSimulatorParams.fromParams(SimulatorParams params)
+      : this(
+          deviceOrientationRad: params.deviceOrientationRad,
+        );
+
+  final double deviceOrientationRad;
+
+  static _AnimatedSimulatorParams lerp(
+    _AnimatedSimulatorParams? a,
+    _AnimatedSimulatorParams? b,
+    double t,
+  ) {
+    if (a == null && b == null) throw Exception('a and b cannot be null');
+
+    final fromParams = a ?? b!;
+    final toParams = b ?? a!;
+
+    return _AnimatedSimulatorParams(
+      deviceOrientationRad: lerpDouble(
+        fromParams.deviceOrientationRad,
+        toParams.deviceOrientationRad,
+        t,
+      )!,
+    );
+  }
+
+  SimulatorParams toParams(SimulatorParams params) {
+    return params.copyWith(
+      deviceOrientationRad: deviceOrientationRad,
+    );
+  }
+
+  @override
+  int get hashCode => deviceOrientationRad.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _AnimatedSimulatorParams &&
+          deviceOrientationRad == other.deviceOrientationRad;
+}
+
 /// Set of parameters to configure the simulator.
 class SimulatorParams {
   const SimulatorParams({
@@ -112,46 +160,31 @@ class SimulatorParams {
     );
   }
 
-  static SimulatorParams lerp(
-    SimulatorParams? a,
-    SimulatorParams? b,
-    double t,
-  ) {
-    if (a == null && b == null) throw Exception('a and b cannot be null');
+  @override
+  int get hashCode => Object.hash(
+        deviceInfo,
+        deviceOrientationRad,
+        previousScreenOrientation,
+        simulatorBrightness,
+        systemUiOverlayStyle,
+        applicationSwitcherDescription?.label,
+        applicationSwitcherDescription?.primaryColor,
+        appPreferredOrientations,
+        isKeyboardVisible,
+      );
 
-    final fromParams = a ?? b!;
-    final toParams = b ?? a!;
-
-    return SimulatorParams(
-      deviceInfo: t == 0.0 ? fromParams.deviceInfo : toParams.deviceInfo,
-      deviceOrientationRad: lerpDouble(
-        fromParams.deviceOrientationRad,
-        toParams.deviceOrientationRad,
-        t,
-      )!,
-      simulatorBrightness:
-          t == 0.0 ? a!.simulatorBrightness : b!.simulatorBrightness,
-      systemUiOverlayStyle:
-          t == 0.0 ? a!.systemUiOverlayStyle : b!.systemUiOverlayStyle,
-      previousScreenOrientation: t == 0.0
-          ? a!.previousScreenOrientation
-          : b!.previousScreenOrientation,
-      appPreferredOrientations:
-          t == 0.0 ? a!.appPreferredOrientations : b!.appPreferredOrientations,
-      applicationSwitcherDescription: t == 0.0
-          ? a!.applicationSwitcherDescription
-          : b!.applicationSwitcherDescription,
-      isKeyboardVisible: t == 0.0 ? a!.isKeyboardVisible : b!.isKeyboardVisible,
-    );
+  @override
+  bool operator ==(Object other) {
+    return other is SimulatorParams && other.hashCode == hashCode;
   }
 }
 
-class SimulatorParamsTween extends Tween<SimulatorParams> {
-  SimulatorParamsTween({super.begin, super.end});
+class _AnimatedSimulatorParamsTween extends Tween<_AnimatedSimulatorParams> {
+  _AnimatedSimulatorParamsTween({super.begin});
 
   @override
-  SimulatorParams lerp(double t) {
-    return SimulatorParams.lerp(begin, end, t);
+  _AnimatedSimulatorParams lerp(double t) {
+    return _AnimatedSimulatorParams.lerp(begin, end, t);
   }
 }
 
@@ -173,26 +206,23 @@ class AnimatedSimulatorParams extends ImplicitlyAnimatedWidget {
 }
 
 class _AnimatedIconThemeState
-    extends ImplicitlyAnimatedWidgetState<AnimatedSimulatorParams> {
-  SimulatorParamsTween? _data;
+    extends AnimatedWidgetBaseState<AnimatedSimulatorParams> {
+  _AnimatedSimulatorParamsTween? _data;
 
   @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
     _data = visitor(
       _data,
-      widget.data,
-      (dynamic value) => SimulatorParamsTween(begin: value as SimulatorParams),
-    ) as SimulatorParamsTween?;
+      _AnimatedSimulatorParams.fromParams(widget.data),
+      (dynamic value) => _AnimatedSimulatorParamsTween(begin: value),
+    ) as _AnimatedSimulatorParamsTween?;
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) => widget.builder(
-        context,
-        _data!.evaluate(animation),
-      ),
+    return widget.builder(
+      context,
+      _data!.evaluate(animation).toParams(widget.data),
     );
   }
 }

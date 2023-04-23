@@ -1,6 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 
+mixin ViewInsettingWidget on Widget {
+  EdgeInsets get viewInsets;
+}
+
 typedef DeviceKeyboardAnimationBuilder = Widget Function(
   BuildContext context,
   Size screenSize,
@@ -15,30 +19,28 @@ typedef DeviceKeyboardBuilder = PreferredSizeWidget Function(
   SimulatedIME? ime,
 );
 
-typedef ViewInsetsTransformer = EdgeInsets Function(
+typedef ViewInsetsBuilder = Widget Function(
   BuildContext context,
   SimulatorParams params,
   SimulatedIME? ime,
+  bool isVisible,
+  Widget Function(BuildContext context, EdgeInsets viewInsets) builder,
 );
 
 class DeviceKeyboard {
   const DeviceKeyboard({
     required this.builder,
-    required this.computeViewInsets,
+    required this.viewInsetsBuilder,
     this.animationBuilder = _buildDefaultKeyboardAnimation,
-    this.keyboardRevealAnimationDuration = const Duration(milliseconds: 275),
-    this.keyboardRevealAnimationCurve = Curves.fastLinearToSlowEaseIn,
   });
 
   final DeviceKeyboardAnimationBuilder animationBuilder;
   final DeviceKeyboardBuilder builder;
-  final ViewInsetsTransformer computeViewInsets;
-  final Duration keyboardRevealAnimationDuration;
-  final Curve keyboardRevealAnimationCurve;
+  final ViewInsetsBuilder viewInsetsBuilder;
 
   static const DeviceKeyboard none = DeviceKeyboard(
     builder: _buildNoKeyboard,
-    computeViewInsets: _computeNoInsets,
+    viewInsetsBuilder: _buildNoInsets,
   );
 }
 
@@ -53,12 +55,14 @@ PreferredSizeWidget _buildNoKeyboard(
   );
 }
 
-EdgeInsets _computeNoInsets(
+Widget _buildNoInsets(
   BuildContext context,
   SimulatorParams params,
   SimulatedIME? ime,
+  bool isVisible,
+  Widget Function(BuildContext context, EdgeInsets viewInsets) builder,
 ) {
-  return EdgeInsets.zero;
+  return builder(context, EdgeInsets.zero);
 }
 
 Widget _buildDefaultKeyboardAnimation(
@@ -68,14 +72,13 @@ Widget _buildDefaultKeyboardAnimation(
   bool isVisible,
   PreferredSizeWidget keyboardWidget,
 ) {
-  final keyboard = params.deviceInfo.deviceKeyboard;
-
-  return AnimatedPositioned(
-    duration: keyboard.keyboardRevealAnimationDuration,
-    curve: keyboard.keyboardRevealAnimationCurve,
+  return Positioned(
     width: keyboardWidget.preferredSize.width,
     height: keyboardWidget.preferredSize.height,
-    bottom: isVisible ? 0.0 : -keyboardWidget.preferredSize.height,
-    child: keyboardWidget,
+    bottom: 0.0,
+    child: Visibility(
+      visible: isVisible,
+      child: RepaintBoundary(child: keyboardWidget),
+    ),
   );
 }

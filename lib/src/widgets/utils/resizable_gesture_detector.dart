@@ -66,6 +66,12 @@ class _MacOSResizableGestureDetectorState
     windowManager.setResizable(false);
   }
 
+  @override
+  void dispose() {
+    windowManager.setResizable(true);
+    super.dispose();
+  }
+
   Future<void> onPanStart(DragStartDetails details) async {
     _initialSize = await windowManager.getSize();
     _initialPanPosition = details.globalPosition;

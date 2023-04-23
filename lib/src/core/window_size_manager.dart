@@ -1,6 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 import 'package:window_manager/window_manager.dart';
+
+Future<void> _awaitForWithTicker({
+  required Duration duration,
+  required TickerProvider tickerProvider,
+}) async {
+  final completer = Completer<void>();
+  final ticker = tickerProvider.createTicker((elapsed) {
+    if (elapsed > duration) {
+      completer.complete();
+    }
+  });
+
+  ticker.start();
+  await completer.future;
+
+  ticker.dispose();
+}
 
 class WindowSizeManager with WindowListener {
   WindowSizeManager() {
@@ -25,10 +44,14 @@ class WindowSizeManager with WindowListener {
   }
 
   var _isTransitioning = false;
-  Future<void> setDeviceFrameSize(Size size) async {
+  Future<void> setDeviceFrameSize(
+    Size size, {
+    required TickerProvider vsync,
+  }) async {
     await windowManager.setMaximumSize(const Size(-1, -1));
 
     if (_lastDeviceFrameSize == size) return;
+    final willAnimate = _lastDeviceFrameSize != null;
 
     final windowSize = await windowManager.getSize();
 
@@ -54,7 +77,8 @@ class WindowSizeManager with WindowListener {
     final newWindowSize = _inflateSizeWithHeader(size * scale);
 
     windowSizeNotifier.value = newWindowSize;
-    if (_lastDeviceFrameSize != null) {
+    _lastDeviceFrameSize = size;
+    if (willAnimate) {
       _isTransitioning = true;
       await windowManager.setTitleBarHeight(0.0);
       await windowManager.setAspectRatio(1.0);
@@ -64,7 +88,11 @@ class WindowSizeManager with WindowListener {
         reportSize: false,
       );
 
-      await Future.delayed(const Duration(milliseconds: 300));
+      await _awaitForWithTicker(
+        duration: const Duration(milliseconds: 300),
+        tickerProvider: vsync,
+      );
+
       _isTransitioning = false;
     }
 
@@ -72,7 +100,6 @@ class WindowSizeManager with WindowListener {
     await windowManager.setAspectRatio(contentAspectRatio);
     await windowManager.setMinimumSize(minSize.rounded);
     _setWindowSize(newWindowSize);
-    _lastDeviceFrameSize = size;
   }
 
   Future<void> _setWindowSize(Size size, {bool reportSize = true}) async {
