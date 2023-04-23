@@ -91,6 +91,18 @@ class _MacOSResizableGestureDetectorState
     final delta = details.globalPosition - _initialPanPosition!;
     final newSize = _initialSize! + delta;
 
+    if (widget.params.deviceInfo.isResizable) {
+      final minSize = Size.square(WindowSizeManager.minWidth);
+
+      final newFixedSize = Size(
+        max(minSize.width, newSize.width),
+        max(minSize.height, newSize.height),
+      );
+
+      await windowManager.setSize(newFixedSize.rounded);
+      return;
+    }
+
     final minFrameWidth = WindowSizeManager.minWidth;
     final minFrameHeight = minFrameWidth / frameAspectRatio;
 
