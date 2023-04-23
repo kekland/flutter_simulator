@@ -264,9 +264,15 @@ void _paintDeviceScreenForeground(
           : Colors.white;
 
   void drawTime() {
+    final time = DateTime.now();
+
+    // TODO: Support i18n here
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+
     final timePainter = TextPainter(
       text: TextSpan(
-        text: '10:28',
+        text: '$hour:$minute',
         style: TextStyle(
           fontFamily: 'SF Pro',
           fontWeight: FontWeight.w600,
@@ -402,7 +408,7 @@ void _paintContentAwareDeviceScreenForeground(
     height: homeIndicatorSize.height,
   );
 
-  const sampleCount = 16;
+  const sampleCount = 64;
   final lumas = <double>[];
 
   for (var i = 0; i < sampleCount; i++) {
@@ -501,7 +507,8 @@ Widget _buildKeyboardAnimation(
       isVisible: isVisible,
       builder: (context, value) {
         return Transform.translate(
-          offset: Offset(0.0, (1 - value) * keyboardWidget.preferredSize.height),
+          offset:
+              Offset(0.0, (1 - value) * keyboardWidget.preferredSize.height),
           child: RepaintBoundary(child: keyboardWidget),
         );
       },

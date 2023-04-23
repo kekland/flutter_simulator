@@ -46,7 +46,7 @@ class DeviceInfo {
   int get hashCode => name.hashCode;
 
   static const DeviceInfo none = DeviceInfo(
-    name: 'none',
+    name: 'frameless',
     platform: TargetPlatform.windows,
     devicePixelRatio: 2.0,
     screenDiagonalInches: 0.0,

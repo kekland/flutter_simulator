@@ -173,7 +173,10 @@ class SystemTextInputChannelInterceptor {
 
   Future<Object?> _onClearClient() async {
     // TODO: Dipose the active IME
-    activeIMEIdNotifier.value = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      activeIMEIdNotifier.value = null;
+    });
+
     return null;
   }
 
