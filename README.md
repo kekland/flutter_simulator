@@ -8,7 +8,7 @@
   <img alt="Dark" src="./assets/screenshot-2.png" width="45%">
 </p>
 
-![Video](./assets/demo.mov)
+https://github.com/kekland/flutter_simulator/blob/master/assets/demo.mov
 
 ## Features
 
