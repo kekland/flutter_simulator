@@ -476,15 +476,77 @@ EdgeInsets _computeViewInsets(
 
 const _keyboardHeight = 336.0;
 const _keyRadius = Radius.circular(5.0);
-const _keyColor = Color(0xFFFDFDFE);
-const _specialKeyColor = Color(0xFFB3BAC3);
-const _keyShadowColor = Color(0xFF888A8D);
 
-const _suggestionsForegroundColor = Color(0xFF141515);
-const _suggestionsDividerColor = Color(0xFFBDBFC3);
-const _trailingForegroundColor = Color(0xFF51555B);
+class _KeyboardTheme {
+  const _KeyboardTheme({
+    required this.keyColor,
+    required this.keyForegroundColor,
+    required this.specialKeyColor,
+    required this.keyShadowColor,
+    required this.suggestionsForegroundColor,
+    required this.suggestionsDividerColor,
+    required this.trailingForegroundColor,
+    required this.keyboardBackgroundColor,
+  });
 
-const _keyboardBackgroundColor = Color(0xFFD1D4D9);
+  final Color keyColor;
+  final Color keyForegroundColor;
+  final Color specialKeyColor;
+  final Color keyShadowColor;
+  final Color suggestionsForegroundColor;
+  final Color suggestionsDividerColor;
+  final Color trailingForegroundColor;
+  final Color keyboardBackgroundColor;
+
+  static _KeyboardTheme of(BuildContext context) {
+    return _InheritedKeyboardWidget.of(context).theme;
+  }
+
+  static const _light = _KeyboardTheme(
+    keyColor: Color(0xFFFDFDFE),
+    keyForegroundColor: Color(0xFF000000),
+    specialKeyColor: Color(0xFFB3BAC3),
+    keyShadowColor: Color(0xFF888A8D),
+    suggestionsForegroundColor: Color(0xFF141515),
+    suggestionsDividerColor: Color(0xFFBDBFC3),
+    trailingForegroundColor: Color(0xFF51555B),
+    keyboardBackgroundColor: Color(0xFFD1D4D9),
+  );
+
+  static const _dark = _KeyboardTheme(
+    keyColor: Color(0xFF535353),
+    keyForegroundColor: Color(0xFFFFFFFF),
+    specialKeyColor: Color(0xFF2D2D2D),
+    keyShadowColor: Color(0xFF535353),
+    suggestionsForegroundColor: Color(0xFFE7E7E7),
+    suggestionsDividerColor: Color(0xFFBDBFC3),
+    trailingForegroundColor: Color(0xFFFFFFFF),
+    keyboardBackgroundColor: Color(0xFF0A0A0A),
+  );
+}
+
+class _InheritedKeyboardWidget extends InheritedWidget {
+  const _InheritedKeyboardWidget({
+    super.key,
+    required this.theme,
+    this.ime,
+    required super.child,
+  });
+
+  final _KeyboardTheme theme;
+  final SimulatedIME? ime;
+
+  static _InheritedKeyboardWidget of(BuildContext context) {
+    final inherited =
+        context.dependOnInheritedWidgetOfExactType<_InheritedKeyboardWidget>();
+    return inherited!;
+  }
+
+  @override
+  bool updateShouldNotify(_InheritedKeyboardWidget oldWidget) =>
+      theme != oldWidget.theme || ime != oldWidget.ime;
+}
+
 PreferredSizeWidget _buildKeyboard(
   BuildContext context,
   SimulatorParams params,
@@ -495,22 +557,30 @@ PreferredSizeWidget _buildKeyboard(
       params.orientedScreenSize.width,
       _keyboardHeight,
     ),
-    child: DefaultTextStyle(
-      style: TextStyle(
-        fontFamily: 'SF Pro',
-        color: _suggestionsForegroundColor,
-      ),
-      child: Container(
-        width: double.infinity,
-        height: _keyboardHeight,
-        color: _keyboardBackgroundColor,
-        child: Column(
-          children: [
-            _IOSKeyboardSuggestionsRowWidget(),
-            const SizedBox(height: 2.0),
-            _IOSEnglishKeyboardWidget(),
-            _IOSKeyboardTrailingWidget(),
-          ],
+    child: _InheritedKeyboardWidget(
+      theme: ime?.configuration.keyboardAppearance == Brightness.light
+          ? _KeyboardTheme._light
+          : _KeyboardTheme._dark,
+      ime: ime,
+      child: Builder(
+        builder: (context) => DefaultTextStyle(
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            color: _KeyboardTheme.of(context).suggestionsForegroundColor,
+          ),
+          child: Container(
+            width: double.infinity,
+            height: _keyboardHeight,
+            color: _KeyboardTheme.of(context).keyboardBackgroundColor,
+            child: Column(
+              children: [
+                _IOSKeyboardSuggestionsRowWidget(),
+                const SizedBox(height: 2.0),
+                _IOSEnglishKeyboardWidget(),
+                _IOSKeyboardTrailingWidget(),
+              ],
+            ),
+          ),
         ),
       ),
     ),
@@ -525,7 +595,7 @@ class _IOSKeyboardSuggestionsRowWidget extends StatelessWidget
     return Container(
       width: 1.0,
       height: 25.0,
-      color: _suggestionsDividerColor,
+      color: _KeyboardTheme.of(context).suggestionsDividerColor,
     );
   }
 
@@ -570,9 +640,9 @@ class _IOSKeyboardTrailingWidget extends StatelessWidget
             child: CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: () {},
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.globe,
-                color: _trailingForegroundColor,
+                color: _KeyboardTheme.of(context).trailingForegroundColor,
                 size: 27.0,
               ),
             ),
@@ -583,9 +653,9 @@ class _IOSKeyboardTrailingWidget extends StatelessWidget
             child: CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: () {},
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.mic,
-                color: _trailingForegroundColor,
+                color: _KeyboardTheme.of(context).trailingForegroundColor,
                 size: 27.0,
               ),
             ),
@@ -685,25 +755,27 @@ class _IOSEnglishKeyboardWidget extends StatelessWidget
             leading: [
               _IOSKeyboardKeyWidget(
                 size: const Size(44, 43),
-                foregroundColor: _specialKeyColor,
+                foregroundColor: _KeyboardTheme.of(context).specialKeyColor,
                 onTap: () {},
-                child: const Icon(
+                child: Icon(
                   CupertinoIcons.shift,
                   size: 20.0,
+                  color: _KeyboardTheme.of(context).keyForegroundColor,
                 ),
               ),
             ],
             trailing: [
               _IOSKeyboardKeyWidget(
                 size: const Size(44, 43),
-                foregroundColor: _specialKeyColor,
+                foregroundColor: _KeyboardTheme.of(context).specialKeyColor,
                 onTap: () {
                   SystemTextInputChannelInterceptor.instance.activeIME
                       .handleBackspacePress();
                 },
-                child: const Icon(
+                child: Icon(
                   CupertinoIcons.delete_left,
                   size: 20.0,
+                  color: _KeyboardTheme.of(context).keyForegroundColor,
                 ),
               ),
             ],
@@ -714,22 +786,24 @@ class _IOSEnglishKeyboardWidget extends StatelessWidget
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             characters: [],
             leading: [
-              const _IOSKeyboardKeyWidget(
-                size: Size(42, 43),
-                foregroundColor: _specialKeyColor,
+              _IOSKeyboardKeyWidget(
+                size: const Size(42, 43),
+                foregroundColor: _KeyboardTheme.of(context).specialKeyColor,
                 child: Icon(
                   CupertinoIcons.textformat_123,
                   size: 20.0,
+                  color: _KeyboardTheme.of(context).keyForegroundColor,
                 ),
               ),
               _buildGap(context),
-              const _IOSKeyboardKeyWidget(
-                size: Size(42, 43),
-                foregroundColor: _specialKeyColor,
+              _IOSKeyboardKeyWidget(
+                size: const Size(42, 43),
+                foregroundColor: _KeyboardTheme.of(context).specialKeyColor,
                 // TODO: Insert the proper icon here
                 child: Icon(
                   CupertinoIcons.smiley,
                   size: 20.0,
+                  color: _KeyboardTheme.of(context).keyForegroundColor,
                 ),
               ),
               _buildGap(context),
@@ -749,7 +823,7 @@ class _IOSEnglishKeyboardWidget extends StatelessWidget
             trailing: [
               _IOSKeyboardKeyWidget(
                 size: const Size(91, 43),
-                foregroundColor: _specialKeyColor,
+                foregroundColor: _KeyboardTheme.of(context).specialKeyColor,
                 onTap: () {
                   SystemTextInputChannelInterceptor.instance.activeIME
                       .handleNewlinePress();
@@ -808,20 +882,22 @@ class _IOSKeyboardKeyWidget extends StatelessWidget {
             height: size.height,
             alignment: Alignment.topLeft,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(_keyRadius),
-              color: _keyShadowColor,
+              borderRadius: const BorderRadius.all(_keyRadius),
+              color: _KeyboardTheme.of(context).keyShadowColor,
             ),
             child: Container(
               height: size.height - 1,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(_keyRadius),
-                color: foregroundColor ?? _keyColor,
+                borderRadius: const BorderRadius.all(_keyRadius),
+                color: foregroundColor ?? _KeyboardTheme.of(context).keyColor,
               ),
               child: Center(
                 child: DefaultTextStyle.merge(
                   style: TextStyle(
                     fontSize: 24.0,
                     height: 1.0,
+                    color: _KeyboardTheme.of(context).keyForegroundColor,
+                    fontWeight: FontWeight.w300,
                   ),
                   child: child,
                 ),

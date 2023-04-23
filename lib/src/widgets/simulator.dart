@@ -55,12 +55,19 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
 
   Brightness get simulatorBrightness => params.simulatorBrightness;
 
+  SimulatedIME? _lastActiveIme;
+
   PreferredSizeWidget _buildKeyboard(BuildContext context) {
+    final ime = SystemTextInputChannelInterceptor.instance.maybeActiveIME;
+    if (ime != null) {
+      _lastActiveIme = ime;
+    }
+
     final keyboard = params.deviceInfo.deviceKeyboard;
     return keyboard.builder(
       context,
       params,
-      SystemTextInputChannelInterceptor.instance.maybeActiveIME,
+      ime ?? _lastActiveIme,
     );
   }
 
@@ -68,19 +75,23 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
     final keyboard = params.deviceInfo.deviceKeyboard;
     return ValueListenableBuilder(
       valueListenable:
-          SystemTextInputChannelInterceptor.instance.keyboardVisibilityNotifier,
-      builder: (context, isVisible, child) {
-        final keyboardChild = child as PreferredSizeWidget;
+          SystemTextInputChannelInterceptor.instance.activeIMEIdNotifier,
+      builder: (context, _, __) => ValueListenableBuilder(
+        valueListenable: SystemTextInputChannelInterceptor
+            .instance.keyboardVisibilityNotifier,
+        builder: (context, isVisible, child) {
+          final keyboardChild = child as PreferredSizeWidget;
 
-        return keyboard.animationBuilder(
-          context,
-          params.orientedScreenSize,
-          params,
-          isVisible,
-          keyboardChild,
-        );
-      },
-      child: _buildKeyboard(context),
+          return keyboard.animationBuilder(
+            context,
+            params.orientedScreenSize,
+            params,
+            isVisible,
+            keyboardChild,
+          );
+        },
+        child: _buildKeyboard(context),
+      ),
     );
   }
 

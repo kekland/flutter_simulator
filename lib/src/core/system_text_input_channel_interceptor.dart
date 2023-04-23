@@ -5,12 +5,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_simulator/src/imports.dart';
 
 class SystemTextInputChannelInterceptor {
-  int? _activeIMEId;
   final Map<int, SimulatedIME> _simulatedIMEs = {};
 
   SimulatedIME? get maybeActiveIME => _activeIMEId != null ? activeIME : null;
   SimulatedIME get activeIME => _simulatedIMEs[_activeIMEId]!;
 
+  int? get _activeIMEId => activeIMEIdNotifier.value;
+  final activeIMEIdNotifier = ValueNotifier<int?>(null);
   final keyboardVisibilityNotifier = ValueNotifier(false);
 
   static SystemTextInputChannelInterceptor ensureInitialized() {
@@ -77,7 +78,7 @@ class SystemTextInputChannelInterceptor {
       configuration: configuration,
     );
 
-    _activeIMEId = id;
+    activeIMEIdNotifier.value = id;
 
     return null;
   }
@@ -174,7 +175,7 @@ class SystemTextInputChannelInterceptor {
 
   Future<Object?> _onClearClient() async {
     // TODO: Dipose the active IME
-    _activeIMEId = null;
+    activeIMEIdNotifier.value = null;
     return null;
   }
 

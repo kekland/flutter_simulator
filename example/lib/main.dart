@@ -104,12 +104,36 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
+      resizeToAvoidBottomInset: true,
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.newspaper),
+            label: 'News',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
       body: ListView.builder(
         itemBuilder: (context, i) {
           if (i % 5 == 0) {
             return const ColoredBox(
               color: Colors.white,
-              child: SizedBox(width: double.infinity, height: 128.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 128.0,
+                child: TextField(
+                  maxLines: 3,
+                  keyboardAppearance: Brightness.light,
+                ),
+              ),
             );
           }
           if (i % 5 == 1) {
