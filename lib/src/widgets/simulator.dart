@@ -154,10 +154,10 @@ class _SimulatorWidgetState extends State<SimulatorWidget>
             final viewPadding = params.viewPadding;
 
             final padding = EdgeInsets.only(
-              left: max(viewPadding.left, viewInsets.left),
-              top: max(viewPadding.top, viewInsets.top),
-              right: max(viewPadding.right, viewInsets.right),
-              bottom: max(viewPadding.bottom, viewInsets.bottom),
+              left: max(0, viewPadding.left - viewInsets.left),
+              top: max(0, viewPadding.top - viewInsets.top),
+              right: max(0, viewPadding.right - viewInsets.right),
+              bottom: max(0, viewPadding.bottom - viewInsets.bottom),
             );
 
             final mediaQueryData = _mediaQueryData.copyWith(
