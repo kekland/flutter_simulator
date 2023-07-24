@@ -630,7 +630,7 @@ PreferredSizeWidget _buildKeyboard(
 }
 
 class _IOSKeyboardSuggestionsRowWidget extends StatelessWidget
-    with PreferredSizeWidget {
+    implements PreferredSizeWidget {
   const _IOSKeyboardSuggestionsRowWidget();
 
   Widget _buildDivider(BuildContext context) {
@@ -668,7 +668,7 @@ class _IOSKeyboardSuggestionsRowWidget extends StatelessWidget
 }
 
 class _IOSKeyboardTrailingWidget extends StatelessWidget
-    with PreferredSizeWidget {
+    implements PreferredSizeWidget {
   const _IOSKeyboardTrailingWidget();
 
   @override
@@ -712,7 +712,7 @@ class _IOSKeyboardTrailingWidget extends StatelessWidget
 }
 
 class _IOSEnglishKeyboardWidget extends StatelessWidget
-    with PreferredSizeWidget {
+    implements PreferredSizeWidget {
   const _IOSEnglishKeyboardWidget();
 
   void _onCharacterTap(String character) {

@@ -18,7 +18,7 @@ mixin InterceptableRendererBinding on WidgetsFlutterBinding {
   void initRenderView() {
     renderView = InterceptableRenderView(
       configuration: createViewConfiguration(),
-      window: window,
+      view: platformDispatcher.views.first,
     );
 
     renderView.prepareInitialFrame();
@@ -36,11 +36,12 @@ mixin InterceptableRendererBinding on WidgetsFlutterBinding {
 class InterceptableRenderView extends RenderView {
   InterceptableRenderView({
     required super.configuration,
-    required ui.FlutterView window,
-  })  : _window = window,
-        super(window: window);
+    required ui.FlutterView view,
+  })  : _view = view,
+        super(view: view);
 
-  final ui.FlutterView _window;
+  final ui.FlutterView _view;
+  ui.FlutterView get simulatorView => _view;
 
   /// Callback for before the scene is built in [compositeFrame].
   final onBeforeBuildSceneNotifier = ChangeNotifier();
@@ -67,7 +68,7 @@ class InterceptableRenderView extends RenderView {
 
       onAfterBuildSceneNotifier.notifyListeners();
 
-      _window.render(scene);
+      _view.render(scene);
       scene.dispose();
 
       assert(() {

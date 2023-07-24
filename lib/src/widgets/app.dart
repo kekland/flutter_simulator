@@ -165,31 +165,34 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
     return FocusScope(
       node: _headerFocusScopeNode,
       canRequestFocus: false,
-      child: MaterialApp(
-        title: 'simulator-app',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData.from(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.teal,
-            brightness: _params.simulatorBrightness,
+      child: View(
+        view: SimulatorWidgetsBinding.instance.renderView.simulatorView,
+        child: MaterialApp(
+          title: 'simulator-app',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData.from(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.teal,
+              brightness: _params.simulatorBrightness,
+            ),
+            useMaterial3: true,
           ),
-          useMaterial3: true,
-        ),
-        home: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: RepaintBoundary(
-            key: _appRepaintBoundaryKey,
-            child: ResizableSimulatorHandler(
-              params: _params,
-              builder: (context, params) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context, params),
-                  const SizedBox(height: 16.0),
-                  Expanded(
-                    child: _buildSimulator(context, params),
-                  ),
-                ],
+          home: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: RepaintBoundary(
+              key: _appRepaintBoundaryKey,
+              child: ResizableSimulatorHandler(
+                params: _params,
+                builder: (context, params) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, params),
+                    const SizedBox(height: 16.0),
+                    Expanded(
+                      child: _buildSimulator(context, params),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
