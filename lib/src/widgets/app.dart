@@ -162,37 +162,54 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
 
   @override
   Widget build(BuildContext context) {
+    MaterialApp;
     return FocusScope(
       node: _headerFocusScopeNode,
       canRequestFocus: false,
       child: View(
         view: SimulatorWidgetsBinding.instance.renderView.simulatorView,
-        child: MaterialApp(
-          title: 'simulator-app',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData.from(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.teal,
-              brightness: _params.simulatorBrightness,
-            ),
-            useMaterial3: true,
-          ),
-          home: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: RepaintBoundary(
-              key: _appRepaintBoundaryKey,
-              child: ResizableSimulatorHandler(
-                params: _params,
-                builder: (context, params) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context, params),
-                    const SizedBox(height: 16.0),
-                    Expanded(
-                      child: _buildSimulator(context, params),
-                    ),
-                  ],
+        child: Directionality(
+          textDirection: TextDirection.ltr, // TODO: Support RTL
+          child: Localizations(
+            delegates: const [
+              DefaultWidgetsLocalizations.delegate,
+              DefaultMaterialLocalizations.delegate,
+            ],
+            locale: const Locale('en', 'US'),
+            child: Theme(
+              data: ThemeData.from(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.teal,
+                  brightness: _params.simulatorBrightness,
                 ),
+                useMaterial3: true,
+              ),
+              child: Overlay(
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (context) => Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: RepaintBoundary(
+                        key: _appRepaintBoundaryKey,
+                        child: ResizableSimulatorHandler(
+                          params: _params,
+                          builder: (context, params) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeader(context, params),
+                              const SizedBox(height: 16.0),
+                              Expanded(
+                                child: _buildSimulator(context, params),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    maintainState: true,
+                    opaque: true,
+                  ),
+                ],
               ),
             ),
           ),
