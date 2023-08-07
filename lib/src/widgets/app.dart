@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -174,6 +175,7 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
             delegates: const [
               DefaultWidgetsLocalizations.delegate,
               DefaultMaterialLocalizations.delegate,
+              DefaultCupertinoLocalizations.delegate,
             ],
             locale: const Locale('en', 'US'),
             child: Theme(
