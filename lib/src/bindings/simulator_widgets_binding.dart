@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -23,9 +21,10 @@ class SimulatorWidgetsBinding extends WidgetsFlutterBinding
     }
 
     _instance = SimulatorWidgetsBinding();
-    _instance!.initScreenInterceptor();
+    _instance!.initRenderView();
 
     await windowManager.ensureInitialized();
+    _instance!.initScreenInterceptor();
 
     return _instance!;
   }

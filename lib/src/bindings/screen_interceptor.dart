@@ -9,7 +9,7 @@ mixin ScreenInterceptor on WidgetsFlutterBinding {
   void initScreenInterceptor() {
     final binding = this as SimulatorWidgetsBinding;
 
-    binding.renderView.onAfterBuildSceneNotifier.addListener(() {
+    binding.appRenderView.onAfterBuildSceneNotifier.addListener(() {
       final image = binding.deviceScreenRenderObject.toImageSync();
 
       image.toByteData().then((byteData) {

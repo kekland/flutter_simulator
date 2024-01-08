@@ -14,19 +14,20 @@ import 'package:flutter_simulator/flutter_simulator.dart';
 /// building process. It initializes the [renderView] with a custom
 /// implementation called [InterceptableRenderView].
 mixin InterceptableRendererBinding on WidgetsFlutterBinding {
-  @override
   void initRenderView() {
-    renderView = InterceptableRenderView(
-      configuration: createViewConfiguration(),
-      view: platformDispatcher.views.first,
+    appRenderView = InterceptableRenderView(
+      configuration: null,
+      view: PlatformDispatcher.instance.implicitView!,
     );
 
-    renderView.prepareInitialFrame();
+    appRenderView.configuration = createViewConfigurationFor(appRenderView);
   }
+
+  late final InterceptableRenderView appRenderView;
 
   @override
   InterceptableRenderView get renderView =>
-      super.renderView as InterceptableRenderView;
+      super.renderViews.first as InterceptableRenderView;
 }
 
 /// A [RenderView] that allows for intercepting the scene building process.

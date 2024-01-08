@@ -163,12 +163,20 @@ class _FlutterSimulatorAppState extends State<FlutterSimulatorApp>
 
   @override
   Widget build(BuildContext context) {
+    WidgetsApp;
     MaterialApp;
-    return FocusScope(
-      node: _headerFocusScopeNode,
-      canRequestFocus: false,
-      child: View(
-        view: SimulatorWidgetsBinding.instance.renderView.simulatorView,
+    print(PlatformDispatcher.instance.views);
+    print(PlatformDispatcher.instance.implicitView!);
+
+    return View(
+      view: SimulatorWidgetsBinding.instance.appRenderView.flutterView,
+      deprecatedDoNotUseWillBeRemovedWithoutNoticeRenderView:
+          SimulatorWidgetsBinding.instance.appRenderView,
+      deprecatedDoNotUseWillBeRemovedWithoutNoticePipelineOwner:
+          SimulatorWidgetsBinding.instance.pipelineOwner,
+      child: FocusScope(
+        node: _headerFocusScopeNode,
+        canRequestFocus: false,
         child: Directionality(
           textDirection: TextDirection.ltr, // TODO: Support RTL
           child: Localizations(
