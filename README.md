@@ -1,5 +1,9 @@
 # flutter_simulator
 
+# Deprecation notice
+
+**This package has been deprecated and archived in favor of https://github.com/kekland/simulator. It's a complete rewrite of this project and offers way more features.**
+
 **Warning: still highly experimental.**
 
 <p align="center">
